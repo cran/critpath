@@ -1,0 +1,126 @@
+---
+title: "The LESS method"
+author: "Adam Kucharski"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{The LESS method}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Time-cost analysis
+
+Some activities may be performed for a shorter time than originally assumed provided that certain additional costs are incurred. However, this reduction has a time limit below which it is not possible to perform activities, regardless of costs incurred to accelerate them. Let's make the following assumptions:
+
+- The cost of activity acceleration is a linear function.
+- The initial duration of an activity is called normal time and the shortest possible duration is called the boundary time.
+  
+The decision problem we deal with concerns the minimization of the total cost of the project (*TC*) and we will use the *LESS* method to solve it. The total cost consists of two components:
+
+- direct cost (*DC*) related to the performance of activities;
+- indirect cost (*IC*) related to the implementation of the project.
+
+The purpose of the time-cost analysis is to determine the end term of the project at which the expression $TC = DC + IC$ reaches its minimum.
+
+In the LESS model, we distinguish the following components:
+
+- $t_{ij}^{n}$ - normal duration of the activity (*i,j*);
+- $t_{ij}^{b}$ - boundary (the shortest possible) duration of the activity (*i,j*);
+- $C_{ij}^{n}$ - normal cost of performing the activity (*i,j*) (cost of performing the activity in time $t_{ij}^{n}$);
+- $C_{ij}^{b}$ - boundary cost of performing the activity (*i,j*) (cost of performing the activity in time $t_{ij}^{g}$).
+
+The duration of the activity (*i,j*) meets the condition: $t_{ij}^{g}\leqslant t_{ij}\leqslant t_{ij}^{n}$. For each activity, we calculate the unit cost of acceleration $s_{ij}$ according to the formula:
+
+\[
+s_{ij}=\frac{C_{ij}^{b}-C_{ij}^{n}}{t_{ij}^{n}-t_{ij}^{b}}
+\]
+
+The time-cost analysis runs in iterations and can be described with the following steps:
+
+1. Carry out the analysis assuming normal duration of activities.
+2. In this and each subsequent step, accelerate the selected **critical activity** by 1 unit and recalculate the total cost.
+3. Choose the critical activity with the lowest unit acceleration cost.
+4. If there are parallel critical activities, speed up one critical activity for each of the parallel branches. The selection of the activities to be accelerated is determined by the sum of the unit acceleration costs of each of the parallel critical branches.
+
+## LESS method in package *critpath*
+
+**Notice!**
+
+The *critpath* package requires the *DiagrammeR*, *ggplot2* and *reshape2* packages to be installed additionally.
+
+Let us assume that the activities are described on arcs (AoA model). Consider a small example where 5 nodes are connected by 7 actions as shown in the graph below.
+
+```{r, echo = FALSE, include = FALSE}
+library(critpath)
+plot_graphAOA(lessexample1)
+```
+
+```{r, fig.align = 'center'}
+plot_graphAOA(lessexample1)
+```
+
+The *lessexample1* data set contains the data frame shown in the table below.
+
+```{r, echo = FALSE}
+from <- c(1, 1, 2, 2, 3, 3, 4)
+to <- c(2, 3, 3, 4, 4, 5, 5)
+label <- c("A", "B", "C", "D", "E", "F", "G")
+time <- c(4, 6, 2, 6, 3, 3, 5)
+bound_time <- c(2, 3, 1, 4, 2, 3, 3)
+norm_cost <- c(50, 40, 20, 100, 50, 25, 60)
+bound_cost <- c(70, 55, 24, 130, 60, 25, 75)
+knitr::kable(cbind(from, to, label, time, bound_time, norm_cost, bound_cost), col.names = c("Start. node", 
+                                                         "End. node",
+                                                         "Name",
+                                                         "Normal duration",
+                                                         "Boundary duration",
+                                                         "Normal cost",
+                                                         "Boundary cost"),
+             align = "cccc", caption = "Tab. 1. Data for the LESS model")
+```
+
+As with other *critpath* functions, the column names can be anything, but the order they are in is significant. The first two columns describe the structure of the graph (as the AoA), the third contains activities labels, the others contain data on the project. The number of rows corresponds to the number of activities that make up the project.
+
+First, we present the function *solve_lessAOA(data, ICconst, ICslope)*, which is the most important function for the LESS method. It iterates through the procedure and returns the graph and information about the solution. 
+
+The function takes three arguments: data frame, intercept and slope of the linear indirect cost function. The indirect cost function in our example takes the form: 
+$IC = 50 + 15t_{5}$, where $t_{5}$ denotes the directive term in the last, fifth node of the graph.
+
+```{r}
+z <- solve_lessAOA(lessexample1, 50, 15)
+```
+
+The results are as follows:
+
+```{r}
+# Data frame with some data and partial results
+z[2]
+# List of critical activities
+z[3]
+# The total cost vector of all iterations
+z[4]
+# Minimum total cost
+z[5]
+# Last node number and shortest directive term
+z[6]
+```
+
+Using the *plot_crit_pathAOA()* function we will obtain a graph with marked critical activities.
+
+```{r, fig.align = 'center'}
+plot_crit_pathAOA(z)
+```
+
+It is also possible to make a graph of the evolution of total costs thanks to the function *plot_TC()*.
+
+```{r, fig.align = 'center'}
+plot_TC(z)
+```
