@@ -228,14 +228,15 @@ solve_pathAOA <- function(input_data, deterministic = TRUE){
 
 #' Graph with marked critical path
 #'
-#' @param yourlist Lista obiektow tworzacych rozwiazanie problemu zarzadzania projektem
+#' @param yourlist Data frame describing the problem
+#' @param fixed_seed Optional parameter setting random seed to user value to get similar looking plots each time the function is run (set to      23 by default).
 #' @return The function draws the graph along with the critical path by means of the DiagrammeR package functions.
 #' @examples
 #' x <- solve_pathAOA(cpmexample1, TRUE)
 #' plot_crit_pathAOA(x)
 #' @import DiagrammeR
 #' @export
-plot_crit_pathAOA <- function(yourlist){
+plot_crit_pathAOA <- function(yourlist, fixed_seed = 23){
   TS <- color <- time <- style <- NULL
   # Check if DiagrammeR package is loaded. If not, load it.
   pckg_check("DiagrammeR")
@@ -254,7 +255,9 @@ plot_crit_pathAOA <- function(yourlist){
     clear_selection() %>%
     select_edges(conditions = TS == 0) %>%
     set_edge_attrs_ws(edge_attr = color, value = "red")
-
+  # Set random seed to fixed value
+  suppressWarnings(RNGversion("3.5.0"))
+  set.seed(fixed_seed)
   render_graph(yourgraph, layout = "fr")
 }
 #===============================================================================
@@ -264,7 +267,7 @@ plot_crit_pathAOA <- function(yourlist){
 #'A Gantt chart
 #'
 #' @param yourlist List of objects that make up the solution to the project management problem.
-#' @param bar_size Thickness of the bar drawn for activity
+#' @param bar_size Thickness of the bar drawn for activity (set to 10 by default).
 #' @return Draws a Gantt chart broken down into critical ("CR") and non-critical ("NC") activities.
 #'   Marks the slack of time.
 #' @examples
@@ -350,14 +353,15 @@ plot_norm <- function(yourlist){
 
 #' Graph without critical path
 #'
-#' @param input_data Data frame describing the problem
+#' @param input_data Data frame describing the problem.
+#' @param fixed_seed Optional parameter setting random seed to user value to get similar looking plots each time the function is run (set to      23 by default).
 #' @return The function draws a relationship graph between activities without solving the problem
 #'   and thus without marking critical activities.
 #' @examples
 #' plot_graphAOA(cpmexample1)
 #' @import DiagrammeR
 #' @export
-plot_graphAOA <- function(input_data){
+plot_graphAOA <- function(input_data, fixed_seed = 23){
   time <- style <- NULL
   relations <- create_edge_df(from = input_data[,1], to = input_data[,2],
                             label = as.character(input_data[,3]), time = input_data[,4])
@@ -371,5 +375,8 @@ plot_graphAOA <- function(input_data){
       select_edges(conditions = time == 0) %>%
       set_edge_attrs_ws(edge_attr = style, value = "dotted")
   }
+  # Set random seed to fixed value
+  suppressWarnings(RNGversion("3.5.0"))
+  set.seed(fixed_seed)
   render_graph(yourgraph, layout = "fr")
 }

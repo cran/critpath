@@ -4,10 +4,12 @@
 \alias{plot_crit_pathAOA}
 \title{Graph with marked critical path}
 \usage{
-plot_crit_pathAOA(yourlist)
+plot_crit_pathAOA(yourlist, fixed_seed = 23)
 }
 \arguments{
-\item{yourlist}{Lista obiektow tworzacych rozwiazanie problemu zarzadzania projektem}
+\item{yourlist}{Data frame describing the problem}
+
+\item{fixed_seed}{Optional parameter setting random seed to user value to get similar looking plots each time the function is run (set to      23 by default).}
 }
 \value{
 The function draws the graph along with the critical path by means of the DiagrammeR package functions.

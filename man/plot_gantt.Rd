@@ -9,7 +9,7 @@ plot_gantt(yourlist, bar_size = 10)
 \arguments{
 \item{yourlist}{List of objects that make up the solution to the project management problem.}
 
-\item{bar_size}{Thickness of the bar drawn for activity}
+\item{bar_size}{Thickness of the bar drawn for activity (set to 10 by default).}
 }
 \value{
 Draws a Gantt chart broken down into critical ("CR") and non-critical ("NC") activities.

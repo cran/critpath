@@ -1,0 +1,4 @@
+Changes in 0.1.3 version:
+* Added the optional fixed_seed parameter to the functions that plot graphs.
+* Added directive term for normal time to the list containing results for the LESS method.
+* Fixed some minor bugs in the code.

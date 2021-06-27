@@ -40,8 +40,10 @@ z[3]
 z[4]
 # Minimum total cost
 z[5]
-# Last node number and shortest directive term
+# Directive term for normal time
 z[6]
+# The shortest directive term
+z[7]
 
 ## ---- fig.align = 'center'----------------------------------------------------
 plot_crit_pathAOA(z)

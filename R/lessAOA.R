@@ -31,7 +31,7 @@ make_nodeslessAOA <- function(input_tab){
 #===============================================================================
 # Function that completes the graph in the current iteration
 
-fill_grapfAOA <- function(actgraph, frame){
+fill_graphAOA <- function(actgraph, frame){
   ES <- LF <- NULL
 
   # Calculates ES values for vertices. The loop goes through SINGLE activities, from the first to the last one.
@@ -124,7 +124,7 @@ calc_IC <- function(ICconst, ICslope, tfinal){
 #' @import DiagrammeR
 #' @export
 solve_lessAOA <- function(input_data, ICconst, ICslope){
-  LF <- ES <- TS <- nodes_num <- accel_cost <- time <- bound_time <- label <- NULL
+  LF <- ES <- TS <- nodes_num <- accel_cost <- time <- bound_time <- label <- normal_DT <- NULL
 # Reading data and creating a graph
   relations <- read_lessAOA(input_data)
   vertices <- make_nodeslessAOA(relations)
@@ -136,8 +136,10 @@ solve_lessAOA <- function(input_data, ICconst, ICslope){
                        directed = TRUE)
 
   # Graph for normal times
-  yourgraph <- fill_grapfAOA(yourgraph, relations)
+  yourgraph <- fill_graphAOA(yourgraph, relations)
   yourgraph <- fill_slackAOA(yourgraph, relations)
+  # Save DT for normal times
+  normal_DT <- get_node_attrs(yourgraph, node_attr = LF, nodes = nodes_num)
 
   # total cost for tn
   DC <- sum(input_data[,6])
@@ -196,7 +198,7 @@ solve_lessAOA <- function(input_data, ICconst, ICslope){
                          directed = TRUE)
 
     # Complete the main graph and determine TS
-    yourgraph <- fill_grapfAOA(yourgraph, relations)
+    yourgraph <- fill_graphAOA(yourgraph, relations)
     yourgraph <- fill_slackAOA(yourgraph, relations)
 
     # acceleration cost for selected edges
@@ -231,6 +233,7 @@ solve_lessAOA <- function(input_data, ICconst, ICslope){
        critical = summ_graph$name[summ_graph$TS == 0],
        TC_iter = TC,
        min_cost = TC[length(TC)-1],
+       normal_DT = unname(normal_DT),
        min_time = unname(min_time))
 }
 #===============================================================================

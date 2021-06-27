@@ -4,10 +4,12 @@
 \alias{plot_graphAOA}
 \title{Graph without critical path}
 \usage{
-plot_graphAOA(input_data)
+plot_graphAOA(input_data, fixed_seed = 23)
 }
 \arguments{
-\item{input_data}{Data frame describing the problem}
+\item{input_data}{Data frame describing the problem.}
+
+\item{fixed_seed}{Optional parameter setting random seed to user value to get similar looking plots each time the function is run (set to      23 by default).}
 }
 \value{
 The function draws a relationship graph between activities without solving the problem
