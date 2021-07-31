@@ -32,12 +32,20 @@ x[2]
 x[3]
 # Critical activities
 x[4]
+# Free float and conditional float values
+x[5]
 
 ## ---- fig.align = 'center'----------------------------------------------------
 plot_crit_pathAOA(x)
 
 ## ---- fig.align = 'center', fig.width = 6, fig.cap = "Gantt chart"------------
 plot_gantt(x)
+
+## ---- fig.align = 'center', fig.width = 6, fig.cap = "ASAP chart"-------------
+plot_asap(x)
+
+## ---- fig.align = 'center', fig.width = 6, fig.cap = "ALAP chart"-------------
+plot_alap(x)
 
 ## ---- echo = FALSE------------------------------------------------------------
 from <- c(1, 2, 3, 3, 3, 4, 5, 6, 7)
@@ -63,12 +71,20 @@ y[3]
 y[4]
 # Critical activities
 y[5]
+# Free float and conditional float values
+y[6]
 
 ## ---- fig.align = 'center',  fig.width = 6------------------------------------
 plot_crit_pathAOA(y)
 
-## ---- fig.align = 'center', fig.width = 6-------------------------------------
+## ---- fig.align = 'center', fig.width = 6, fig.cap = "Gantt chart"------------
 plot_gantt(y)
+
+## ---- fig.align = 'center', fig.width = 6, fig.cap = "ASAP chart"-------------
+plot_asap(y)
+
+## ---- fig.align = 'center', fig.width = 6, fig.cap = "ALAP chart"-------------
+plot_alap(y)
 
 ## -----------------------------------------------------------------------------
 # Risk-taker's schedule

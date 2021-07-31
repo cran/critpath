@@ -47,9 +47,9 @@ The moment of completing the entire project is called the directive term. CPM an
 4. Preparation of the project schedule.
 5. Determining the critical path of the project.
 
-Additionally, we can make a Gantt chart.
+Additionally, we can make a Gantt chart and ASAP (As Soon As Possible) and ALAP (As Late As Possible) charts.
 
-The preparation of a project schedule consists in determining all possible starting and completion times for the activities. In addition, we calculate a float time (total slack) for each activity. During this time, the activity can be delayed without delaying the completion of the entire project. 
+The preparation of a project schedule consists in determining all possible starting and completion times for the activities. In addition, we calculate a total float time (total slack) for each activity. During this time, the activity can be delayed without delaying the completion of the entire project. 
 
 Let's denote:
 
@@ -61,9 +61,13 @@ $LS_{ij}=LF_{ij}-t_{ij}$ - the latest permitted start time for the activity $(i,
 
 $EF_{ij}=ES_{ij}+t_{ij}$ - the earliest possible completion time of the activity $(i,j)$;
 
-$TS_{ij}=LF_{ij}-ES_{ij}-t_{ij}$ - total slack of time for activity $(i,j)$. A reserve of time that can be used to perform a given activity without affecting the completion time of the project.
+$TS_{ij}=LF_{ij}-ES_{ij}-t_{ij}$ - total slack of time (total float) for activity $(i,j)$. A reserve of time that can be used to perform a given activity without affecting the completion time of the project.
 
-We assume that the directive term equals to the earliest time of the final event $\left(DT=t_{n}^{0}\right)$ so the slacks for critical activities equal to zero. Extension of the duration of any critical activity by $\tau$ time units will postpone the completion time of the entire project by $\tau$ units.
+$FS_{ij}=t_{j}^{0}-t_{i}^{0}-t_{ij}$ - free slack of time (free float) for activity $(i,j)$. Maximum amount of time by which an activity can be delayed without delaying the earliest possible start time of any following activity.
+
+$CS_{ij}=t_{j}^{1}-t_{i}^{1}-t_{ij}$ - conditional slack of time for activity $(i,j)$. Maximum amount of time by which an activity can be delayed without delaying without affecting time slacks of activities preceding the activity (lying on the same path).
+
+We assume that the directive term (DT) equals to the earliest time of the final event $\left(DT=t_{n}^{0}\right)$ so the slacks for critical activities equal to zero. Extension of the duration of any critical activity by $\tau$ time units will postpone the completion time of the entire project by $\tau$ units.
 
 If we assume that $DT>t_{n}^{0}$ then extension of the duration of any critical activity by $\tau$ time units will postpone the completion time of the entire project by $\tau-\left(DT-t_{n}^{0}\right)$ units for $\tau>\left(DT-t_{n}^{0}\right)$. Smaller delays do not affect the duration of the entire project.
 
@@ -93,7 +97,8 @@ We will perform the following analyzes:
 - finding the start and end times of all activities,
 - indicating the bottlenecks of the project (critical activities),
 - puting critical activities on the graph,
-- making a Gantt chart.
+- making a Gantt chart,
+- making ASAP and ALAP charts.
 
 Usually we know what the graph looks like before solving the project management problem but let's assume that at the moment we don't. With the help of the *plot_graphAOA()* function we will create a graph based on the data from Table 1. The function takes two arguments: 
 data frame with ... well, data and whether the durations are deterministic.
@@ -121,6 +126,7 @@ After the calculations are completed, a message is displayed with the directive 
 2. The schedule of the project.
 3. Project completion time.
 4. List of critical activities.
+5. A table with free float and conditional float values.
 
 Operator "[" returns objects of the list type. In turn, the operator "[[" allows you to access the value of a specific list item.
 
@@ -131,6 +137,8 @@ x[2]
 x[3]
 # Critical activities
 x[4]
+# Free float and conditional float values
+x[5]
 ```
 
 The first element of the list *x* is used by other functions in the package. Asterisks in the last column of the schedule indicate which activities are critical.
@@ -141,13 +149,25 @@ Now, let's draw a graph with the critical activities marked. We will use the *pl
 plot_crit_pathAOA(x)
 ```
 
-The last element of the CPM analysis will be the Gantt chart. The *plot_gantt()* function requires the *ggplot2* and *reshape2* packages to be installed first. It also takes the list produced by the *solve_pathAOA()* function as a mandatory argument. Optional argument *bar_size* determines the thickness of the bar of the drawn activity. The default is 10, and if appropriate, this argument need not be provided.
+The next element of the CPM analysis will be the Gantt chart. The *plot_gantt()* function requires the *ggplot2* and *reshape2* packages to be installed first. It also takes the list produced by the *solve_pathAOA()* function as a mandatory argument. Optional argument *bar_size* determines the thickness of the bar of the drawn activity. The default is 10, and if appropriate, this argument need not be provided.
 
 ```{r, fig.align = 'center', fig.width = 6, fig.cap = "Gantt chart"}
 plot_gantt(x)
 ```
 
 The activities are displayed in the order they were entered. The critical ones are marked with *CR* and the non-critical ones with *NC*. Additionally, slacks greater than zero have been added for non-critical activities.
+
+Based on the Gantt chart we can plot two more charts. The first one is the ASAP chart which shows effetcs of starting activity as early as possible and end it as early as possible. It can be achieved withe the *plot_asap()* function.
+
+```{r, fig.align = 'center', fig.width = 6, fig.cap = "ASAP chart"}
+plot_asap(x)
+```
+
+On the other hand, the ALAP chart shows effetcs of starting activity as late as possible and end it as late as possible. It can be achieved withe the *plot_alap()* function.
+
+```{r, fig.align = 'center', fig.width = 6, fig.cap = "ALAP chart"}
+plot_alap(x)
+```
 
 ## The PERT method
 
@@ -212,6 +232,7 @@ We are interested in the following types of analyzes:
 - identifying the bottlenecks of the project (critical activities),
 - placing critical activities on the graph,
 - making a Gantt chart,
+- making ASAP and ALAP charts,
 - indication of directive terms for the risk-taker and the belayer schedules.
 
 Duration is a random variable, so we will change the *deterministic* argument to *FALSE*.
@@ -234,16 +255,26 @@ y[3]
 y[4]
 # Critical activities
 y[5]
+# Free float and conditional float values
+y[6]
 ```
 
-The activity graph and the Gantt chart are obtained in the same way as before.
+The activity graph, the Gantt, ASAP anad ALAP charts are obtained in the same way as before.
 
 ```{r, fig.align = 'center',  fig.width = 6}
 plot_crit_pathAOA(y)
 ```
 
-```{r, fig.align = 'center', fig.width = 6}
+```{r, fig.align = 'center', fig.width = 6, fig.cap = "Gantt chart"}
 plot_gantt(y)
+```
+
+```{r, fig.align = 'center', fig.width = 6, fig.cap = "ASAP chart"}
+plot_asap(y)
+```
+
+```{r, fig.align = 'center', fig.width = 6, fig.cap = "ALAP chart"}
+plot_alap(y)
 ```
 
 To set deadlines corresponding to the schedules of the risk-taker and the belayer, we will use the functions from the *stats* package.

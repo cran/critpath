@@ -146,6 +146,19 @@ scheduleAOA <- function(relations, deterministic){
   # Completes TS for the edges data frame.
   yourgraph <- set_edge_attrs(yourgraph, edge_attr = TS, values = yourschedule$TSij)
 
+  # Extract values of the ES attributes for all nodes
+  ESnodes <- get_node_attrs(yourgraph, node_attr = ES)
+
+  # Extract values of the LF attributes for all nodes
+  LFnodes <- get_node_attrs(yourgraph, node_attr = LF)
+
+  # Calculate spare/free and conditional slack of time
+  AddInfo <- data.frame(
+    Name = relations$label,
+    FST = ESnodes[relations$to] - ESnodes[relations$from] - yourschedule$Time,
+    CST = LFnodes[relations$to] - LFnodes[relations$from] - yourschedule$Time
+  )
+
   # Messages after the computation is completed.
   if (deterministic == TRUE){
     # CPM
@@ -160,13 +173,16 @@ scheduleAOA <- function(relations, deterministic){
     # CPM.
     list(graphAOA = yourgraph, schedule = yourschedule,
       ComplTi = max(yourschedule$LFij),
-      CritAct = yourschedule$Name[which(yourschedule$TSij == 0)])
+      CritAct = yourschedule$Name[which(yourschedule$TSij == 0)],
+      AddSlacks = AddInfo
+      )
   }else{
     # PERT.
     list(graphAOA = yourgraph, schedule = yourschedule,
       ComplTi = max(yourschedule$LFij),
       SDevTi = sqrt(sum(yourschedule$Var[which(yourschedule$TSij == 0)])),
-      CritAct = yourschedule$Name[which(yourschedule$TSij == 0)])
+      CritAct = yourschedule$Name[which(yourschedule$TSij == 0)],
+      AddSlacks = AddInfo)
   }
 }
 
@@ -379,4 +395,114 @@ plot_graphAOA <- function(input_data, fixed_seed = 23){
   suppressWarnings(RNGversion("3.5.0"))
   set.seed(fixed_seed)
   render_graph(yourgraph, layout = "fr")
+}
+
+#===============================================================================
+
+# A function that draws an ASAP (As Soon As Possible) chart.
+
+#'An ASAP chart
+#'
+#' @param yourlist List of objects that make up the solution to the project management problem.
+#' @param bar_size Thickness of the bar drawn for activity (set to 10 by default).
+#' @return Draws an ASAP (activities start and finish As Soon As Possible) chart broken down into critical ("CR") and non-critical ("NC") activities.
+#'   Marks the slack of time.
+#' @examples
+#' x <- solve_pathAOA(cpmexample1, deterministic = TRUE)
+#' plot_asap(x)
+#' @import ggplot2
+#' @import reshape2
+#' @export
+plot_asap <- function(yourlist, bar_size = 10){
+  Name <- FST <- TSij <- value <- NULL
+  # Check if ggplot2 package is loaded. If not, load it.
+  pckg_check("ggplot2")
+
+  # Check if reshape2 package is loaded. If not, load it.
+  pckg_check("reshape2")
+
+  # Create temporary schedule with additional column
+  schedule <- cbind(yourlist[[2]], ResTimeij = yourlist[[2]]$EFij + yourlist[["AddSlacks"]]$FST)
+
+  # Sorting the schedule according to slack of time.
+  dftmp <- schedule[order(schedule$TSij),]
+
+  # The TSij column gives the critical activities the symbol "CR" and the non-critical activities "NC".
+  dftmp$TSij[dftmp$TSij > 0] <- c("NC")
+  dftmp$TSij[dftmp$TSij == 0] <- c("CR")
+
+  # Gantt chart as ASAP
+  melthar <- melt(dftmp, measure.vars = c("ESij", "EFij"))
+  melthar2 <- melt(dftmp, measure.vars = c("EFij", "ResTimeij"))
+
+  ggplot(melthar, aes(value, Name, colour = TSij)) +
+    geom_line(size = bar_size) +
+    ylab(NULL) +
+    xlab(NULL) +
+    theme_bw() +
+    theme(legend.title=element_blank())
+
+  ggplot() +
+    geom_line(melthar, mapping = aes(value, Name, colour = TSij), size = bar_size) +
+    geom_line(melthar2, mapping = aes(value, Name), colour ="cyan", size = bar_size) +
+    ylab(NULL) +
+    xlab(NULL) +
+    theme_bw() +
+    theme(legend.title=element_blank())
+
+}
+
+#===============================================================================
+
+# A function that draws an ALAP (As Late As Possible) chart.
+
+#'An ALAP chart
+#'
+#' @param yourlist List of objects that make up the solution to the project management problem.
+#' @param bar_size Thickness of the bar drawn for activity (set to 10 by default).
+#' @return Draws an ALAP (activities start and finish As Late As Possible) chart broken down into critical ("CR") and non-critical ("NC") activities.
+#'   Marks the slack of time.
+#' @examples
+#' x <- solve_pathAOA(cpmexample1, deterministic = TRUE)
+#' plot_alap(x)
+#' @import ggplot2
+#' @import reshape2
+#' @export
+plot_alap <- function(yourlist, bar_size = 10){
+  Name <- CST <- TSij <- value <- NULL
+  # Check if ggplot2 package is loaded. If not, load it.
+  pckg_check("ggplot2")
+
+  # Check if reshape2 package is loaded. If not, load it.
+  pckg_check("reshape2")
+
+  # Create temporary schedule with additional column
+  schedule <- cbind(yourlist[[2]], ResTimeij = yourlist[[2]]$LSij - yourlist[["AddSlacks"]]$CST)
+
+  # Sorting the schedule according to slack of time.
+  dftmp <- schedule[order(schedule$TSij),]
+
+  # The TSij column gives the critical activities the symbol "CR" and the non-critical activities "NC".
+  dftmp$TSij[dftmp$TSij > 0] <- c("NC")
+  dftmp$TSij[dftmp$TSij == 0] <- c("CR")
+
+  # Gantt chart as ASAP
+  melthar <- melt(dftmp, measure.vars = c("LFij", "LSij"))
+  melthar2 <- melt(dftmp, measure.vars = c("ResTimeij", "LSij"))
+
+  ggplot(melthar, aes(value, Name, colour = TSij)) +
+    geom_line(size = bar_size) +
+    ylab(NULL) +
+    xlab(NULL) +
+    theme_bw() +
+    theme(legend.title=element_blank())
+
+  ggplot() +
+    geom_line(melthar, mapping = aes(value, Name, colour = TSij), size = bar_size) +
+    geom_line(melthar2, mapping = aes(value, Name), colour ="cyan", size = bar_size) +
+    ylab(NULL) +
+    xlab(NULL) +
+    theme_bw() +
+    theme(legend.title=element_blank())
+
 }
