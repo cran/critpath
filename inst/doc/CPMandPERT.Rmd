@@ -143,10 +143,10 @@ x[5]
 
 The first element of the list *x* is used by other functions in the package. Asterisks in the last column of the schedule indicate which activities are critical.
 
-Now, let's draw a graph with the critical activities marked. We will use the *plot_crit_pathAOA()* function. It takes one argument - a list created after solving the problem. 
+Now, let's draw a graph with the critical activities marked. We will use the *plot_graphAOA()* function again but with different argument. It will be a list created after solving the problem. This requires the use of the *solved*"* argument.
 
 ```{r, fig.align = 'center'}
-plot_crit_pathAOA(x)
+plot_graphAOA(solved = x)
 ```
 
 The next element of the CPM analysis will be the Gantt chart. The *plot_gantt()* function requires the *ggplot2* and *reshape2* packages to be installed first. It also takes the list produced by the *solve_pathAOA()* function as a mandatory argument. Optional argument *bar_size* determines the thickness of the bar of the drawn activity. The default is 10, and if appropriate, this argument need not be provided.
@@ -262,7 +262,7 @@ y[6]
 The activity graph, the Gantt, ASAP anad ALAP charts are obtained in the same way as before.
 
 ```{r, fig.align = 'center',  fig.width = 6}
-plot_crit_pathAOA(y)
+plot_graphAOA(solved = y)
 ```
 
 ```{r, fig.align = 'center', fig.width = 6, fig.cap = "Gantt chart"}
@@ -277,20 +277,21 @@ plot_asap(y)
 plot_alap(y)
 ```
 
-To set deadlines corresponding to the schedules of the risk-taker and the belayer, we will use the functions from the *stats* package.
+To set deadlines corresponding to the schedules of the risk-taker and the belayer, we will use the *PERT_newtime()* function.
 
 ```{r}
 # Risk-taker's schedule
-qnorm(0.3, y[[3]], y[[4]])
+PERT_newtime(new_prob = 0.3, y)
 
 # Belayer's schedule
-qnorm(0.6, y[[3]], y[[4]])
+PERT_newtime(new_prob = 0.6, y)
 ```
 
-A function from the same package allows you to find the answer to the question of what will be the probability that the project will end after 30 days.
+The *PERT_newprob()* function answers to the question about the probability of completing the project for a given directive term. For example the probability that the project will end after 30 days
 
 ```{r}
-pnorm(30, mean = y[[3]], sd = y[[4]])
+# 
+PERT_newprob(new_DT = 30, y)
 ```
 
 Besides, the *plot_norm()* function draws a plot of the normal distribution of a random variable describing the expected directive term.

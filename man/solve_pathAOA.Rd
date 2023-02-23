@@ -15,7 +15,7 @@ For the CPM method there will be 4 columns (the order is important, not the name
 \item \code{label} Activity labels.
 \item \code{time} Activities duration.
 }
-For the PERT method there will be 4 columns (the order is important, not the name of the column):
+For the PERT method there will be 6 columns (the order is important, not the name of the column):
 \enumerate{
 \item \code{from} The number of the node where the activity starts.
 \item \code{to} The number of the node where the activity ends.

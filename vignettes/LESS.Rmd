@@ -118,7 +118,7 @@ z[7]
 Using the *plot_crit_pathAOA()* function we will obtain a graph with marked critical activities.
 
 ```{r, fig.align = 'center'}
-plot_crit_pathAOA(z)
+plot_graphAOA(solved = z)
 ```
 
 It is also possible to make a graph of the evolution of total costs thanks to the function *plot_TC()*.

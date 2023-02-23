@@ -36,7 +36,7 @@ x[4]
 x[5]
 
 ## ---- fig.align = 'center'----------------------------------------------------
-plot_crit_pathAOA(x)
+plot_graphAOA(solved = x)
 
 ## ---- fig.align = 'center', fig.width = 6, fig.cap = "Gantt chart"------------
 plot_gantt(x)
@@ -75,7 +75,7 @@ y[5]
 y[6]
 
 ## ---- fig.align = 'center',  fig.width = 6------------------------------------
-plot_crit_pathAOA(y)
+plot_graphAOA(solved = y)
 
 ## ---- fig.align = 'center', fig.width = 6, fig.cap = "Gantt chart"------------
 plot_gantt(y)
@@ -88,13 +88,14 @@ plot_alap(y)
 
 ## -----------------------------------------------------------------------------
 # Risk-taker's schedule
-qnorm(0.3, y[[3]], y[[4]])
+PERT_newtime(new_prob = 0.3, y)
 
 # Belayer's schedule
-qnorm(0.6, y[[3]], y[[4]])
+PERT_newtime(new_prob = 0.6, y)
 
 ## -----------------------------------------------------------------------------
-pnorm(30, mean = y[[3]], sd = y[[4]])
+# 
+PERT_newprob(new_DT = 30, y)
 
 ## ---- fig.align = 'center', fig.width = 6-------------------------------------
 plot_norm(y)

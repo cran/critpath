@@ -1,3 +1,8 @@
+Changes in 0.1.5 version:
+* Minor changes to the manual.
+* plot_graphAOA() now also plots the critical path. plot_crit_pathAOA() is no longer available. Check documentation and vignette.
+* Added two new functions: PERT_newtime() and PERT_newprob().
+
 Changes in 0.1.4 version:
 * Added ASAP (As Soon As Possible) anad ALAP (As Late As Possible) charts.
 * The vignette supplemented adequately to the changes introduced.

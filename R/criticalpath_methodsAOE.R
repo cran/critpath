@@ -4,6 +4,9 @@
 # Data frame for the CPM method. TS stands for slack of time.
 
 read_cpmAOA <- function(yourdata){
+  # Check if the DiagrammeR package is loaded. If not, load it.
+  pckg_check("DiagrammeR")
+
   if (ncol(yourdata) == 4){
     create_edge_df(from = yourdata[,1], to = yourdata[,2], label = yourdata[,3],
                    time = yourdata[,4], TS = rep(0, nrow(yourdata)))
@@ -17,6 +20,9 @@ read_cpmAOA <- function(yourdata){
 # Data frame for the PERT method. TS stands for slack of time.
 
 read_pertAOA <- function(yourdata){
+  # Check if the DiagrammeR package is loaded. If not, load it.
+  pckg_check("DiagrammeR")
+
   if (ncol(yourdata) == 6){
     create_edge_df(from = as.integer(yourdata[,1]), to = as.integer(yourdata[,2]),
                    label = as.character(yourdata[,3]),
@@ -210,7 +216,7 @@ pckg_check <- function(pckg_name){
 #'   \item \code{label} Activity labels.
 #'   \item \code{time} Activities duration.
 #'   }
-#'   For the PERT method there will be 4 columns (the order is important, not the name of the column):
+#'   For the PERT method there will be 6 columns (the order is important, not the name of the column):
 #'   \enumerate{
 #'   \item \code{from} The number of the node where the activity starts.
 #'   \item \code{to} The number of the node where the activity ends.
@@ -231,6 +237,7 @@ pckg_check <- function(pckg_name){
 solve_pathAOA <- function(input_data, deterministic = TRUE){
   # Check if the DiagrammeR package is loaded. If not, load it.
   pckg_check("DiagrammeR")
+
   solved_pathAOA <- vector("list", length = 4)
   # Loads data and creates a relations data frame.
   relations <- make_relationsAOA(input_data, deterministic)
@@ -242,20 +249,14 @@ solve_pathAOA <- function(input_data, deterministic = TRUE){
 
 # Presentation of the critical path on a graph.
 
-#' Graph with marked critical path
-#'
-#' @param yourlist Data frame describing the problem
-#' @param fixed_seed Optional parameter setting random seed to user value to get similar looking plots each time the function is run (set to      23 by default).
-#' @return The function draws the graph along with the critical path by means of the DiagrammeR package functions.
-#' @examples
-#' x <- solve_pathAOA(cpmexample1, TRUE)
-#' plot_crit_pathAOA(x)
-#' @import DiagrammeR
-#' @export
 plot_crit_pathAOA <- function(yourlist, fixed_seed = 23){
   TS <- color <- time <- style <- NULL
   # Check if DiagrammeR package is loaded. If not, load it.
   pckg_check("DiagrammeR")
+
+  # Check if yourlist is a list
+  stopifnot("The function requires a list" = is.list(yourlist))
+
   # Temporarily remembered list items.
   yourgraph <- yourlist[[1]]
 
@@ -299,6 +300,9 @@ plot_gantt <- function(yourlist, bar_size = 10){
 
   # Check if reshape2 package is loaded. If not, load it.
   pckg_check("reshape2")
+
+  # Check if yourlist is a list
+  stopifnot("The function requires a list" = is.list(yourlist))
 
   schedule <- yourlist[[2]]
 
@@ -346,6 +350,13 @@ plot_gantt <- function(yourlist, bar_size = 10){
 #' @export
 plot_norm <- function(yourlist){
   z <- df <- x <- NULL
+
+  # Check if ggplot2 package is loaded. If not, load it.
+  pckg_check("ggplot2")
+
+  # Check if yourlist is a list
+  stopifnot("The function requires a list" = is.list(yourlist))
+
   # Risk-taker schedule
   hryz <- qnorm(0.3, yourlist[[3]], yourlist[[4]])
   #Belayer schedule
@@ -367,17 +378,7 @@ plot_norm <- function(yourlist){
 #===============================================================================
 # Function that draws a graph before solving a problem.
 
-#' Graph without critical path
-#'
-#' @param input_data Data frame describing the problem.
-#' @param fixed_seed Optional parameter setting random seed to user value to get similar looking plots each time the function is run (set to      23 by default).
-#' @return The function draws a relationship graph between activities without solving the problem
-#'   and thus without marking critical activities.
-#' @examples
-#' plot_graphAOA(cpmexample1)
-#' @import DiagrammeR
-#' @export
-plot_graphAOA <- function(input_data, fixed_seed = 23){
+plot_dataAOA <- function(input_data, fixed_seed){
   time <- style <- NULL
   relations <- create_edge_df(from = input_data[,1], to = input_data[,2],
                             label = as.character(input_data[,3]), time = input_data[,4])
@@ -420,6 +421,9 @@ plot_asap <- function(yourlist, bar_size = 10){
 
   # Check if reshape2 package is loaded. If not, load it.
   pckg_check("reshape2")
+
+  # Check if yourlist is a list
+  stopifnot("The function requires a list" = is.list(yourlist))
 
   # Create temporary schedule with additional column
   schedule <- cbind(yourlist[[2]], ResTimeij = yourlist[[2]]$EFij + yourlist[["AddSlacks"]]$FST)
@@ -476,6 +480,9 @@ plot_alap <- function(yourlist, bar_size = 10){
   # Check if reshape2 package is loaded. If not, load it.
   pckg_check("reshape2")
 
+  # Check if yourlist is a list
+  stopifnot("The function requires a list" = is.list(yourlist))
+
   # Create temporary schedule with additional column
   schedule <- cbind(yourlist[[2]], ResTimeij = yourlist[[2]]$LSij - yourlist[["AddSlacks"]]$CST)
 
@@ -505,4 +512,78 @@ plot_alap <- function(yourlist, bar_size = 10){
     theme_bw() +
     theme(legend.title=element_blank())
 
+}
+#===============================================================================
+# Function that draws a graph before or after solving a problem.
+
+#' A graph of connections between nodes
+#'
+#' @param input_data Data frame describing the problem.
+#' @param solved List of objects that make up the solution to the project management problem.
+#' @param fixed_seed Optional parameter setting random seed to user value to get similar looking plots each time the function is run (set to 23 by default).
+#' @return The function draws a graph showing dependencies between nodes. The "solved" parameter determines whether there is a critical path in the graph.
+#'   In that case, you must solve the problem first. In the examples below, the function first draws the graph only on the basis of the data frame and then
+#'   after determining the critical path.
+#' @examples
+#' plot_graphAOA(cpmexample1)
+#' x <- solve_pathAOA(cpmexample1, TRUE)
+#' plot_graphAOA(solved = x)
+#' @import DiagrammeR
+#' @export
+plot_graphAOA <- function(input_data, solved = NULL, fixed_seed = 23){
+  # Check if DiagrammeR package is loaded. If not, load it.
+  pckg_check("DiagrammeR")
+
+  if(is.null(solved)){
+    plot_dataAOA(input_data, fixed_seed)
+  }else{
+    plot_crit_pathAOA(solved, fixed_seed)
+  }
+}
+
+#===============================================================================
+
+# A function that computes a new directive term for a given probability
+
+#' A new directive term for any probability
+#'
+#' @param new_prob Probability of the project completion. Default set to 0.5.
+#' @param yourlist List of objects that make up the solution to the project management problem.
+#' @return This function computes a new directive term for a probability given by the user. A normal distribution was assumed.
+#' @examples
+#' y <- solve_pathAOA(pertexample1, deterministic = FALSE)
+#' PERT_newtime(new_prob = 0.3, y)
+#' @import stats
+#' @export
+
+PERT_newtime <- function(new_prob = 0.5, yourlist){
+  # Check the entered parameters
+  stopifnot("Value not in range [0,1]" = new_prob >= 0,
+            "Value not in range [0,1]" = new_prob <= 1,
+            "The function requires a list" = is.list(yourlist))
+  DT <- qnorm(new_prob, yourlist[[3]], yourlist[[4]])
+  cat("New expected compl. time: ", DT, "\n")
+  list(probDT = new_prob, newDT = DT)
+}
+#===============================================================================
+
+# A function that calculates the probability of completing a project based on a given deadline.
+
+#' Probability for the given directive term
+#'
+#' @param new_DT The given project completion date. The parameter must be greater than zero.
+#' @param yourlist List of objects that make up the solution to the project management problem.
+#' @return This function calculates the probability of completing the project within the time specified by the user. A normal distribution was assumed.
+#' @examples
+#' y <- solve_pathAOA(pertexample1, deterministic = FALSE)
+#' PERT_newprob(new_DT = 30, y)
+#' @import stats
+#' @export
+
+PERT_newprob <- function(new_DT, yourlist){
+  # Check the entered parameters
+  stopifnot("New term <= 0" = new_DT > 0, "The function requires a list" = is.list(yourlist))
+  probDT <- pnorm(new_DT, mean = yourlist[[3]], sd = yourlist[[4]])
+  cat("Prob. of completion: ", probDT, "\n")
+  list(newDT = new_DT, prob_compl = probDT)
 }

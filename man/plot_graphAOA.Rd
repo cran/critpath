@@ -2,22 +2,27 @@
 % Please edit documentation in R/criticalpath_methodsAOE.R
 \name{plot_graphAOA}
 \alias{plot_graphAOA}
-\title{Graph without critical path}
+\title{A graph of connections between nodes}
 \usage{
-plot_graphAOA(input_data, fixed_seed = 23)
+plot_graphAOA(input_data, solved = NULL, fixed_seed = 23)
 }
 \arguments{
 \item{input_data}{Data frame describing the problem.}
 
-\item{fixed_seed}{Optional parameter setting random seed to user value to get similar looking plots each time the function is run (set to      23 by default).}
+\item{solved}{List of objects that make up the solution to the project management problem.}
+
+\item{fixed_seed}{Optional parameter setting random seed to user value to get similar looking plots each time the function is run (set to 23 by default).}
 }
 \value{
-The function draws a relationship graph between activities without solving the problem
-  and thus without marking critical activities.
+The function draws a graph showing dependencies between nodes. The "solved" parameter determines whether there is a critical path in the graph.
+  In that case, you must solve the problem first. In the examples below, the function first draws the graph only on the basis of the data frame and then
+  after determining the critical path.
 }
 \description{
-Graph without critical path
+A graph of connections between nodes
 }
 \examples{
 plot_graphAOA(cpmexample1)
+x <- solve_pathAOA(cpmexample1, TRUE)
+plot_graphAOA(solved = x)
 }

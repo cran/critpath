@@ -46,7 +46,7 @@ z[6]
 z[7]
 
 ## ---- fig.align = 'center'----------------------------------------------------
-plot_crit_pathAOA(z)
+plot_graphAOA(solved = z)
 
 ## ---- fig.align = 'center'----------------------------------------------------
 plot_TC(z)
