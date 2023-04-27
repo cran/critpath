@@ -4,10 +4,12 @@
 \alias{plot_gantt}
 \title{A Gantt chart}
 \usage{
-plot_gantt(yourlist, bar_size = 10)
+plot_gantt(yourlist, show_dummy = FALSE, bar_size = 10)
 }
 \arguments{
 \item{yourlist}{List of objects that make up the solution to the project management problem.}
+
+\item{show_dummy}{Decides whether dummy activities should be included in the chart. If so, set it to TRUE (set to FALSE by default).}
 
 \item{bar_size}{Thickness of the bar drawn for activity (set to 10 by default).}
 }

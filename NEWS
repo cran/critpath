@@ -1,3 +1,10 @@
+Changes in 0.2.0 version:
+* Added loading a graph as a list of predecessors.
+* Automatic addition of dummy activities based on the list of predecessors.
+* Charts: Gantt, ASAP and ALAP give you the option to decide whether to display dummy activities.
+* Major and minor changes to critical path functions.
+* Changes in vignettes adapting them to the new features of the package.
+
 Changes in 0.1.5 version:
 * Minor changes to the manual.
 * plot_graphAOA() now also plots the critical path. plot_crit_pathAOA() is no longer available. Check documentation and vignette.

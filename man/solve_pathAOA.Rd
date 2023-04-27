@@ -2,20 +2,26 @@
 % Please edit documentation in R/criticalpath_methodsAOE.R
 \name{solve_pathAOA}
 \alias{solve_pathAOA}
-\title{Finds a solution using CPM and PERT methods}
+\title{Finds a solution using CPM and PERT methods. Relationships between activities can be given as a list of predecessors or start and end node numbers.}
 \usage{
-solve_pathAOA(input_data, deterministic = TRUE)
+solve_pathAOA(input_data, deterministic = TRUE, predecessors = FALSE)
 }
 \arguments{
 \item{input_data}{Data frame containing the structure of the graph and the duration of the activity.
-For the CPM method there will be 4 columns (the order is important, not the name of the column):
+For the CPM method and start/end nodes you need 4 columns (the order is important, not the name of the column):
 \enumerate{
 \item \code{from} The number of the node where the activity starts.
 \item \code{to} The number of the node where the activity ends.
 \item \code{label} Activity labels.
 \item \code{time} Activities duration.
 }
-For the PERT method there will be 6 columns (the order is important, not the name of the column):
+For the CPM method and predecessors list you need 3 columns (the order is important, not the name of the column):
+\enumerate{
+\item \code{label} Activity labels.
+\item \code{pred} List of predecessors.
+\item \code{time} Activities duration.
+}
+For the PERT method and start/end nodes you need 6 columns (the order is important, not the name of the column):
 \enumerate{
 \item \code{from} The number of the node where the activity starts.
 \item \code{to} The number of the node where the activity ends.
@@ -23,18 +29,31 @@ For the PERT method there will be 6 columns (the order is important, not the nam
 \item \code{opt_time} Optimistic duration of activities.
 \item \code{likely_time} The most likely duration of the activity.
 \item \code{pes_time} Pessimistic duration of activities.
+}
+For the PERT method and predecessors list you need 5 columns (the order is important, not the name of the column):
+\enumerate{
+\item \code{label} Activity labels.
+\item \code{pred} List of predecessors.
+\item \code{opt_time} Optimistic duration of activities.
+\item \code{likely_time} The most likely duration of the activity.
+\item \code{pes_time} Pessimistic duration of activities.
 }}
 
 \item{deterministic}{A logical parameter specifying the solution method.
 If set to \code{TRUE} (default), the CPM method is used. If is set to \code{FALSE}, the PERT method is used.}
+
+\item{predecessors}{TRUE if the user data contains a list of immediately preceding activities
+If set to \code{FALSE} (default), start nad end nodes are used. If is set to \code{TRUE}, predecessors list is used.}
 }
 \value{
 The list is made of a graph, schedule and selected partial results.
 }
 \description{
-Finds a solution using CPM and PERT methods
+Finds a solution using CPM and PERT methods. Relationships between activities can be given as a list of predecessors or start and end node numbers.
 }
 \examples{
 x <- solve_pathAOA(cpmexample1, deterministic = TRUE)
 y <- solve_pathAOA(pertexample1, deterministic = FALSE)
+x <- solve_pathAOA(cpmexample2, deterministic = TRUE, predecessors = TRUE)
+y <- solve_pathAOA(pertexample2, deterministic = FALSE, predecessors = TRUE)
 }

@@ -14,7 +14,7 @@
 
 <meta name="date" content="2023-04-26" />
 
-<title>CPM and PERT</title>
+<title>Introduction and data loading</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1552,23 +1552,169 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">CPM and PERT</h1>
+<h1 class="title toc-ignore">Introduction and data loading</h1>
 <h4 class="author">Adam Kucharski</h4>
 <h4 class="date">2023-04-26</h4>
 
 
 
-<div id="example-of-cpm-analysis-in-the-critpath-package" class="section level2">
-<h2>Example of CPM analysis in the <em>critpath</em> package</h2>
-<p>The table below provides information on the structure of the graph
-and the duration of activities in some example project. The same dataset
-is available in the <em>critpath</em> package as <em>cpmexample1</em>.
-This example assumes that the duration is deterministic. Starting and
-ending node numbers are provided for each activity. It is also possible
-to pass the structure of the graph through a list of immediate
-predecessors. See the <em>Introduction</em> vignette.</p>
+<p>There are two approaches in project management to present
+multifunctional projects on a graph:</p>
+<ol style="list-style-type: decimal">
+<li>Activity on the Arc (AoA) notation, where each arrow (edge) means an
+activity. Nodes determine the start or end of one or more
+activities.</li>
+<li>Activity on the Node (AoN) notation, in which the node denotes an
+activity. Arrows represent the relationships between given activity and
+the activities immediately preceding and immediately following it.</li>
+</ol>
+<p>The current version of the package uses the AoA notation.</p>
+<div id="the-critical-path-method" class="section level2">
+<h2>The Critical Path Method</h2>
+<p>In the CPM (Critical Path Method) we assume that the duration of each
+activity is exactly known (deterministic).</p>
+<p>Let’s take the AoA notation. The activity starts at node number <span class="math inline">\(i\)</span> and ends at node number <span class="math inline">\(j\)</span>. The whole project begins and ends in
+one node. Let’s look at the figure below. Starting and ending moments
+differs because activities may occur in parallel and serially within one
+project. Besides, activities will vary in duration.</p>
+<div class="figure">
+<img src="data:image/png;base64,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" style="width:50.0%" alt />
+<p class="caption">Starting and ending moments</p>
+</div>
+<p><span class="math inline">\(t_{i}^{0}\)</span> - the earliest
+possible start time of the task <span class="math inline">\(i\)</span>;</p>
+<p><span class="math inline">\(t_{i}^{1}\)</span> - the latest possible
+start time of the task <span class="math inline">\(i\)</span>;</p>
+<p><span class="math inline">\(t_{j}^{0}\)</span> - the earliest
+possible completion time of the task <span class="math inline">\(j\)</span>;</p>
+<p><span class="math inline">\(t_{j}^{1}\)</span> - the latest possible
+completion time of the task <span class="math inline">\(j\)</span>.</p>
+<p>The moment of completing the entire project is called the directive
+term. CPM analysis can be divided into the following stages:</p>
+<ol style="list-style-type: decimal">
+<li>Setting the earliest times for tasks.</li>
+<li>Setting the latest times for tasks.</li>
+<li>Determining slacks for activities.</li>
+<li>Preparation of the project schedule.</li>
+<li>Determining the critical path of the project.</li>
+</ol>
+<p>Additionally, we can make a Gantt chart and ASAP (As Soon As
+Possible) and ALAP (As Late As Possible) charts.</p>
+<p>The preparation of a project schedule consists in determining all
+possible starting and completion times for the activities. In addition,
+we calculate a total float time (total slack) for each activity. During
+this time, the activity can be delayed without delaying the completion
+of the entire project.</p>
+<p>Let’s denote:</p>
+<p><span class="math inline">\(ES_{ij}=t_{i}^{0}\)</span> - the earliest
+possible start time of the activity <span class="math inline">\((i,j)\)</span>;</p>
+<p><span class="math inline">\(LF_{ij}=t_{i}^{1}\)</span> - the latest
+permitted completion time for the activity <span class="math inline">\((i,j)\)</span>;</p>
+<p><span class="math inline">\(LS_{ij}=LF_{ij}-t_{ij}\)</span> - the
+latest permitted start time for the activity <span class="math inline">\((i,j)\)</span>;</p>
+<p><span class="math inline">\(EF_{ij}=ES_{ij}+t_{ij}\)</span> - the
+earliest possible completion time of the activity <span class="math inline">\((i,j)\)</span>;</p>
+<p><span class="math inline">\(TS_{ij}=LF_{ij}-ES_{ij}-t_{ij}\)</span> -
+total slack of time (total float) for activity <span class="math inline">\((i,j)\)</span>. A reserve of time that can be used
+to perform a given activity without affecting the completion time of the
+project.</p>
+<p><span class="math inline">\(FS_{ij}=t_{j}^{0}-t_{i}^{0}-t_{ij}\)</span> - free
+slack of time (free float) for activity <span class="math inline">\((i,j)\)</span>. Maximum amount of time by which an
+activity can be delayed without delaying the earliest possible start
+time of any following activity.</p>
+<p><span class="math inline">\(CS_{ij}=t_{j}^{1}-t_{i}^{1}-t_{ij}\)</span> -
+conditional slack of time for activity <span class="math inline">\((i,j)\)</span>. Maximum amount of time by which an
+activity can be delayed without delaying without affecting time slacks
+of activities preceding the activity (lying on the same path).</p>
+<p>We assume that the directive term (DT) equals to the earliest time of
+the final event <span class="math inline">\(\left(DT=t_{n}^{0}\right)\)</span> so the slacks
+for critical activities equal to zero. Extension of the duration of any
+critical activity by <span class="math inline">\(\tau\)</span> time
+units will postpone the completion time of the entire project by <span class="math inline">\(\tau\)</span> units.</p>
+<p>If we assume that <span class="math inline">\(DT&gt;t_{n}^{0}\)</span> then extension of the
+duration of any critical activity by <span class="math inline">\(\tau\)</span> time units will postpone the
+completion time of the entire project by <span class="math inline">\(\tau-\left(DT-t_{n}^{0}\right)\)</span> units for
+<span class="math inline">\(\tau&gt;\left(DT-t_{n}^{0}\right)\)</span>.
+Smaller delays do not affect the duration of the entire project.</p>
+</div>
+<div id="the-pert-method" class="section level2">
+<h2>The PERT method</h2>
+<p>The abbreviation PERT stands for Program Evaluation and Review
+Technique. This method is based on the following assumptions:</p>
+<ul>
+<li>Activity durations are assumed to have Beta distribution with
+expected values <span class="math inline">\(E\left(t_{ij}\right)\)</span> and standard
+deviations <span class="math inline">\(D\left(t_{ij}\right)\)</span>.</li>
+<li>The following restrictions apply to the distribution of the activity
+duration,ie. on the density function <span class="math inline">\(f\left(t_{ij}\right)\)</span>:
+<ul>
+<li>the duration of the activity is within the range <span class="math inline">\(\left\langle
+t_{ij}^{a},t_{ij}^{b}\right\rangle\)</span>. We assume that the
+probability of the performance of the activity () in less than <span class="math inline">\(t_{ij}^{a}\)</span> or longer than <span class="math inline">\(t_{ij}^{b}\)</span> units is zero;</li>
+<li>the parameters of the Beta function ensure that the probability
+distribution of the activity duration is a right-hand asymmetric.</li>
+</ul></li>
+</ul>
+<p>Experts estimate the duration of individual activities. As a result,
+we get:</p>
+<ul>
+<li><span class="math inline">\(t_{ij}^{a}\)</span> optimistic duration
+of activity ();</li>
+<li><span class="math inline">\(t_{ij}^{b}\)</span> pessimistic duration
+of activity ();</li>
+<li><span class="math inline">\(t_{ij}^{m}\)</span> the most likely
+duration of the activity ().</li>
+</ul>
+<p>The PERT time analysis begins with the introductory phase, which
+involves estimating the expected value and duration variance for each
+activity.</p>
+<p>Expected duration of the activity (): <span class="math display">\[
+m_{ij}=\frac{t_{ij}^{a}+4t_{ij}^{m}+t_{ij}^{b}}{6}
+\]</span> Variance of activity () duration : <span class="math display">\[
+s_{ij}^{2}=\left(\frac{t_{ij}^{b}-t_{ij}^{a}}{6}\right)^{2}
+\]</span></p>
+<p>The calculations in the stochastic problem are analogous to the
+deterministic (CPM) except that we now use the expected durations
+instead of the fixed durations.</p>
+<p>The classical PERT approach uses the central limit theorem. This
+theorem states that the sum (difference) of a large number of
+independent random variables with the same distribution has an
+asymptotically normal distribution.</p>
+<p>The chance of meeting the expected directive term () equal to the
+earliest time of occurence for the last activity (<span class="math inline">\(t_{n}^{0}\)</span>) is 50%.</p>
+<p>In the PERT method, it is assumed that the should be selected in such
+a way that its probability would be between 30% and 60%:</p>
+<p><span class="math display">\[
+0{,}3 \leqslant P\left(t_{n}&lt;DT\right)\leqslant 0{,}6
+\]</span></p>
+<p>A schedule with less than 30% chance of realization is called the
+risk taker’s schedule, and the one with more than 60% chance is called
+the belayer’s schedule.</p>
+</div>
+<div id="two-ways-to-load-project-data" class="section level2">
+<h2>Two ways to load project data</h2>
+<p>The package in its current version adopts the concept of AoA. For
+this reason, there are two ways to enter the problem data. They differ
+in their approach to introducing the structure of the activity graph.
+The first one assumes that the user gives the start and end nodes of all
+activities, including the dummy ones. The second way is to provide the
+activities immediately preceding it for each activity. In this case,
+dummy activities are usually not introduced. The function that reads the
+data will try to determine these activities and add them to the list.
+For this purpose, the algorithm described in the work by Cohen &amp;
+Sadeh in 2006 was used (see DECRIPTION file for the full bibliographic
+data).</p>
+<p>Let us look at a small example of a project in which the durations of
+activities are known and predetermined. The table below provides
+information on the structure of the graph and the duration of activities
+in some example project. The same dataset is available in the
+<em>critpath</em> package as <em>cpmexample1</em>. As you can see, the
+start and end nodes are given for each activity. The data set should be
+prepared in the form of a data frame. This approach results from the use
+of the <em>DiagrammeR</em> package, which requires specifying the graph
+structure as pairs of nodes that start and end a given activity.</p>
 <table>
-<caption>Tab. 1. Data for the CPM model</caption>
+<caption>Tab. 1. Data loaded based on the start and end nodes</caption>
 <thead>
 <tr class="header">
 <th align="center">Start. node</th>
@@ -1616,371 +1762,131 @@ predecessors. See the <em>Introduction</em> vignette.</p>
 </tr>
 </tbody>
 </table>
-<p>We will perform the following analyzes:</p>
-<ul>
-<li>making a graph of connections between activities,</li>
-<li>finding the start and end times of all activities,</li>
-<li>indicating the bottlenecks of the project (critical
-activities),</li>
-<li>puting critical activities on the graph,</li>
-<li>making a Gantt chart,</li>
-<li>making ASAP and ALAP charts.</li>
-</ul>
-<p><strong>Notice!</strong></p>
-<p>The <em>critpath</em> requires additional packages to be installed.
-The required packages are <em>DiagrammeR</em>, <em>ggplot2</em>,
-<em>reshape2</em> and <em>stringr</em>.</p>
-<p>You can preview what the graph looks like before solving it. The
-<em>plot_graphAOA()</em> function is used for this.</p>
+<p>Usually we know what the graph looks like before solving the project
+management problem but let’s assume that at the moment we don’t. With
+the help of the <em>plot_graphAOA()</em> function we will create a graph
+based on the data from Table 1. The function takes two arguments: data
+frame with … well, data and whether the durations are deterministic.</p>
+<p>The data frame should have the same structure as in Table 1. The
+order of the columns is important, not their names. The first two
+columns contain the numbers of the starting and ending nodes. The next
+column contains the names of activities and the last one times of their
+duration. All package functions that use the data frame as an argument
+must keep this structure.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_graphAOA</span>(cpmexample1)</span></code></pre></div>
 <div class="figure" style="text-align: center">
-<div class="grViz html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-dec099711b98e4d58d00" style="width:288px;height:288px;"></div>
-<script type="application/json" data-for="htmlwidget-dec099711b98e4d58d00">{"x":{"diagram":"digraph {\n\ngraph [layout = \"neato\",\n       outputorder = \"edgesfirst\",\n       bgcolor = \"white\"]\n\nnode [fontname = \"Helvetica\",\n      fontsize = \"10\",\n      shape = \"circle\",\n      fixedsize = \"true\",\n      width = \"0.5\",\n      style = \"filled\",\n      fillcolor = \"aliceblue\",\n      color = \"gray70\",\n      fontcolor = \"gray50\"]\n\nedge [fontname = \"Helvetica\",\n     fontsize = \"8\",\n     len = \"1.5\",\n     color = \"gray80\",\n     arrowsize = \"0.5\"]\n\n  \"1\" [label = \"1\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"5.35032009298318,-1.51467537658063!\"] \n  \"2\" [label = \"2\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"4.34023628780804,-1.77468964444776!\"] \n  \"3\" [label = \"3\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"5.96755749859405,-0.673905258683665!\"] \n  \"4\" [label = \"4\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"4.73327265822148,-0.602476430227224!\"] \n  \"5\" [label = \"5\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"3.95859382055866,0.542753254537818!\"] \n\"1\"->\"2\" [label = \"A\"] \n\"1\"->\"3\" [label = \"B\"] \n\"1\"->\"4\" [label = \"C\"] \n\"2\"->\"4\" [label = \"D\"] \n\"3\"->\"4\" [label = \"E\"] \n\"4\"->\"5\" [label = \"F\"] \n}","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div class="grViz html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-b8029361cef0b9474ad7" style="width:288px;height:288px;"></div>
+<script type="application/json" data-for="htmlwidget-b8029361cef0b9474ad7">{"x":{"diagram":"digraph {\n\ngraph [layout = \"neato\",\n       outputorder = \"edgesfirst\",\n       bgcolor = \"white\"]\n\nnode [fontname = \"Helvetica\",\n      fontsize = \"10\",\n      shape = \"circle\",\n      fixedsize = \"true\",\n      width = \"0.5\",\n      style = \"filled\",\n      fillcolor = \"aliceblue\",\n      color = \"gray70\",\n      fontcolor = \"gray50\"]\n\nedge [fontname = \"Helvetica\",\n     fontsize = \"8\",\n     len = \"1.5\",\n     color = \"gray80\",\n     arrowsize = \"0.5\"]\n\n  \"1\" [label = \"1\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"5.35032009298318,-1.51467537658063!\"] \n  \"2\" [label = \"2\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"4.34023628780804,-1.77468964444776!\"] \n  \"3\" [label = \"3\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"5.96755749859405,-0.673905258683665!\"] \n  \"4\" [label = \"4\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"4.73327265822148,-0.602476430227224!\"] \n  \"5\" [label = \"5\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"3.95859382055866,0.542753254537818!\"] \n\"1\"->\"2\" [label = \"A\"] \n\"1\"->\"3\" [label = \"B\"] \n\"1\"->\"4\" [label = \"C\"] \n\"2\"->\"4\" [label = \"D\"] \n\"3\"->\"4\" [label = \"E\"] \n\"4\"->\"5\" [label = \"F\"] \n}","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 <p class="caption">
 Fig. 1. Graph for the cpmexample1 dataset
 </p>
 </div>
-<p>The next two items from the list above are performed by the
-<em>solve_pathAOA()</em> function. It creates the schedule of the
-project and requires two arguments: data frame prepared according to the
-scheme described above and a logical argument indicating what kind of
-duration (deterministic or stochastic) we are dealing with.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">solve_pathAOA</span>(cpmexample1, <span class="at">deterministic =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Completion time:  8</span></span></code></pre></div>
-<p>After the calculations are completed, a message is displayed with the
-directive term. The result of the <em>solve_pathAOA()</em> function is
-saved to the list. Its elements vary slightly depending on the type of
-method used. For the CPM, these will be:</p>
-<ol style="list-style-type: decimal">
-<li>A saved graph created with a <em>DiagrammeR</em> package.</li>
-<li>The schedule of the project.</li>
-<li>Project completion time.</li>
-<li>List of critical activities.</li>
-<li>A table with free float and conditional float values.</li>
-</ol>
-<p>Operator “[” returns objects of the list type. In turn, the operator
-“[[” allows you to access the value of a specific list item.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Schedule</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>x[<span class="dv">2</span>]</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $schedule</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Name Time ESij LSij EFij LFij TSij Crit</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1    A    3    0    1    3    4    1     </span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2    B    2    0    2    2    4    2     </span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3    C    5    0    0    5    5    0    *</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4    D    1    3    4    4    5    1     </span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5    E    1    2    4    3    5    2     </span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6    F    3    5    5    8    8    0    *</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Directive term</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>x[<span class="dv">3</span>]</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ComplTi</span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 8</span></span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Critical activities</span></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>x[<span class="dv">4</span>]</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $CritAct</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;C&quot; &quot;F&quot;</span></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Free float and conditional float values</span></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>x[<span class="dv">5</span>]</span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $AddSlacks</span></span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Name FST CST</span></span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1    A   0   1</span></span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2    B   0   2</span></span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3    C   0   0</span></span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4    D   1   0</span></span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5    E   2   0</span></span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6    F   0   0</span></span></code></pre></div>
-<p>The first element of the list <em>x</em> is used by other functions
-in the package. It belongs to the <em>dgr_graph</em> class supported by
-the <em>DiagrammeR</em> package. It is possible to perform operations
-described in the manual of this package. Asterisks in the last column of
-the schedule indicate which activities are critical.</p>
-<p>Now, let’s draw a graph with the critical activities marked. We will
-use the <em>plot_graphAOA()</em> function again but with different
-argument. It will be a list created after solving the problem. This
-requires the use of the <em>solved</em>”* argument.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_graphAOA</span>(<span class="at">solved =</span> x)</span></code></pre></div>
-<div class="figure" style="text-align: center">
-<div class="grViz html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-ba72d6176fa43cbdf0d6" style="width:288px;height:288px;"></div>
-<script type="application/json" data-for="htmlwidget-ba72d6176fa43cbdf0d6">{"x":{"diagram":"digraph {\n\ngraph [layout = \"neato\",\n       outputorder = \"edgesfirst\",\n       bgcolor = \"white\"]\n\nnode [fontname = \"Helvetica\",\n      fontsize = \"10\",\n      shape = \"circle\",\n      fixedsize = \"true\",\n      width = \"0.5\",\n      style = \"filled\",\n      fillcolor = \"aliceblue\",\n      color = \"gray70\",\n      fontcolor = \"gray50\"]\n\nedge [fontname = \"Helvetica\",\n     fontsize = \"8\",\n     len = \"1.5\",\n     color = \"gray80\",\n     arrowsize = \"0.5\"]\n\n  \"1\" [label = \"1\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"5.35032009298318,-1.51467537658063!\"] \n  \"2\" [label = \"2\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"4.34023628780804,-1.77468964444776!\"] \n  \"3\" [label = \"3\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"5.96755749859405,-0.673905258683665!\"] \n  \"4\" [label = \"4\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"4.73327265822148,-0.602476430227224!\"] \n  \"5\" [label = \"5\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"3.95859382055866,0.542753254537818!\"] \n\"1\"->\"2\" [label = \"A\", color = \"gray80\"] \n\"1\"->\"3\" [label = \"B\", color = \"gray80\"] \n\"1\"->\"4\" [label = \"C\", color = \"red\"] \n\"2\"->\"4\" [label = \"D\", color = \"gray80\"] \n\"3\"->\"4\" [label = \"E\", color = \"gray80\"] \n\"4\"->\"5\" [label = \"F\", color = \"red\"] \n}","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
-<p class="caption">
-Fig. 2. Critical path for the cpmexample1 dataset
-</p>
-</div>
-<p>The next element of the CPM analysis will be the Gantt chart. The
-<em>plot_gantt()</em> function requires the <em>ggplot2</em> and
-<em>reshape2</em> packages to be installed first. It also takes the list
-produced by the <em>solve_pathAOA()</em> function as a mandatory
-argument. Optional argument <em>bar_size</em> determines the thickness
-of the bar of the drawn activity. The default is 10, and if appropriate,
-this argument need not be provided.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_gantt</span>(x)</span></code></pre></div>
-<div class="figure" style="text-align: center">
-<img src="data:image/png;base64,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" alt="Fig. 3. Gantt chart for the cpmexample1 dataset" />
-<p class="caption">
-Fig. 3. Gantt chart for the cpmexample1 dataset
-</p>
-</div>
-<p>The activities are displayed in the order they were entered. The
-critical ones are marked with <em>CR</em> and the non-critical ones with
-<em>NC</em>. Additionally, slacks greater than zero have been added for
-non-critical activities.</p>
-<p>Based on the Gantt chart we can plot two more charts. The first one
-is the ASAP chart which shows effetcs of starting activity as early as
-possible and end it as early as possible. It can be achieved withe the
-<em>plot_asap()</em> function.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_asap</span>(x)</span></code></pre></div>
-<div class="figure" style="text-align: center">
-<img src="data:image/png;base64,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" alt="Fig. 4. ASAP chart for the cpmexample1 dataset" />
-<p class="caption">
-Fig. 4. ASAP chart for the cpmexample1 dataset
-</p>
-</div>
-<p>On the other hand, the ALAP chart shows effetcs of starting activity
-as late as possible and end it as late as possible. It can be achieved
-with the <em>plot_alap()</em> function.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_alap</span>(x)</span></code></pre></div>
-<div class="figure" style="text-align: center">
-<img src="data:image/png;base64,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" alt="Fig. 5. ALAP chart for the cpmexample1 dataset" />
-<p class="caption">
-Fig. 5. ALAP chart for the cpmexample1 dataset
-</p>
-</div>
-<p>The plot_gantt(), plot_asap(), plot_alap() functions have an optional
-show_dummy parameter. If it is set to TRUE, dummy activities will be
-placed on the chart.</p>
-</div>
-<div id="example-of-pert-analysis-in-the-critpath-package" class="section level2">
-<h2>Example of PERT analysis in the <em>critpath</em> package</h2>
-<p>We will use a different data than in CPM. This data is available in a
-set named <em>pertexample1</em>. Let us assume that the duration of
-activities are random and described with three numerical values as in
-Table 2.</p>
+<p>The first method of loading an AOA project, i.e. with the indication
+of the start and end node, has been described above. Now we’re going to
+use the list of predecessors. Let’s look at the next table. This example
+comes from a book (Miszczyńska D., Miszczyński M. 2000) unfortunately
+available only in Polish.</p>
 <table>
-<caption>Tab. 2. Data for the PERT model</caption>
-<colgroup>
-<col width="18%" />
-<col width="15%" />
-<col width="8%" />
-<col width="15%" />
-<col width="24%" />
-<col width="17%" />
-</colgroup>
+<caption>Tab. 2. Data loaded from the list of activity
+predecessors</caption>
 <thead>
 <tr class="header">
-<th align="center">Start. node</th>
-<th align="center">End. node</th>
 <th align="center">Name</th>
-<th align="center">Opt. time</th>
-<th align="center">Most like. time</th>
-<th align="center">Pess. time</th>
+<th align="center">Predecessors</th>
+<th align="center">Duration</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center">1</td>
+<td align="center">A</td>
+<td align="center">NA</td>
+<td align="center">6</td>
+</tr>
+<tr class="even">
+<td align="center">B</td>
+<td align="center">NA</td>
 <td align="center">2</td>
+</tr>
+<tr class="odd">
+<td align="center">C</td>
+<td align="center">A</td>
+<td align="center">4</td>
+</tr>
+<tr class="even">
+<td align="center">D</td>
+<td align="center">A</td>
+<td align="center">6</td>
+</tr>
+<tr class="odd">
+<td align="center">E</td>
 <td align="center">A</td>
 <td align="center">3</td>
-<td align="center">5</td>
-<td align="center">7</td>
 </tr>
 <tr class="even">
-<td align="center">2</td>
-<td align="center">3</td>
-<td align="center">B</td>
-<td align="center">5</td>
-<td align="center">7</td>
-<td align="center">9</td>
-</tr>
-<tr class="odd">
-<td align="center">3</td>
-<td align="center">4</td>
-<td align="center">C</td>
-<td align="center">5</td>
-<td align="center">5</td>
-<td align="center">8</td>
-</tr>
-<tr class="even">
-<td align="center">3</td>
-<td align="center">5</td>
-<td align="center">D</td>
-<td align="center">1</td>
-<td align="center">6</td>
-<td align="center">8</td>
-</tr>
-<tr class="odd">
-<td align="center">3</td>
-<td align="center">6</td>
-<td align="center">E</td>
-<td align="center">6</td>
-<td align="center">8</td>
-<td align="center">10</td>
-</tr>
-<tr class="even">
-<td align="center">4</td>
-<td align="center">7</td>
 <td align="center">F</td>
+<td align="center">C,D</td>
 <td align="center">2</td>
-<td align="center">6</td>
-<td align="center">7</td>
 </tr>
 <tr class="odd">
-<td align="center">5</td>
-<td align="center">7</td>
 <td align="center">G</td>
+<td align="center">D</td>
 <td align="center">5</td>
-<td align="center">6</td>
-<td align="center">7</td>
 </tr>
 <tr class="even">
-<td align="center">6</td>
-<td align="center">7</td>
 <td align="center">H</td>
+<td align="center">B,E</td>
 <td align="center">3</td>
-<td align="center">5</td>
-<td align="center">7</td>
 </tr>
 <tr class="odd">
-<td align="center">7</td>
-<td align="center">8</td>
 <td align="center">I</td>
-<td align="center">4</td>
-<td align="center">6</td>
-<td align="center">8</td>
+<td align="center">H</td>
+<td align="center">2</td>
+</tr>
+<tr class="even">
+<td align="center">J</td>
+<td align="center">F,G,I</td>
+<td align="center">2</td>
 </tr>
 </tbody>
 </table>
-<p>We are interested in the following types of analyzes:</p>
-<ul>
-<li>determining the start and end times for each activity,</li>
-<li>identifying the bottlenecks of the project (critical
-activities),</li>
-<li>placing critical activities on the graph,</li>
-<li>making a Gantt chart,</li>
-<li>making ASAP and ALAP charts,</li>
-<li>indication of directive terms for the risk-taker and the belayer
-schedules.</li>
-</ul>
-<p>Duration is a random variable, so we will change the
-<em>deterministic</em> argument to <em>FALSE</em>.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">solve_pathAOA</span>(pertexample1, <span class="at">deterministic =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Expected compl. time distribution: N( 31 , 1.490712 )</span></span></code></pre></div>
-<p>After solving the problem, a message appears giving the parameters of
-the normal distribution of a random variable describing the duration of
-the project.</p>
-<p>Below we display the elements of the list storing the solution. It
-contains one more element than the list created for the CPM method. The
-<em>Time</em> column contains the expected duration of the activity.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Schedule</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>y[<span class="dv">2</span>]</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $schedule</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Name Time       Var ESij LSij EFij LFij TSij Crit</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1    A  5.0 0.4444444  0.0  0.0  5.0  5.0  0.0    *</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2    B  7.0 0.4444444  5.0  5.0 12.0 12.0  0.0    *</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3    C  5.5 0.2500000 12.0 14.0 17.5 19.5  2.0     </span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4    D  5.5 1.3611111 12.0 13.5 17.5 19.0  1.5     </span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5    E  8.0 0.4444444 12.0 12.0 20.0 20.0  0.0    *</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6    F  5.5 0.6944444 17.5 19.5 23.0 25.0  2.0     </span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 7    G  6.0 0.1111111 17.5 19.0 23.5 25.0  1.5     </span></span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 8    H  5.0 0.4444444 20.0 20.0 25.0 25.0  0.0    *</span></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 9    I  6.0 0.4444444 25.0 25.0 31.0 31.0  0.0    *</span></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Expected directive term</span></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>y[<span class="dv">3</span>]</span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ComplTi</span></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 31</span></span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Standard deviation of the directive term</span></span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>y[<span class="dv">4</span>]</span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $SDevTi</span></span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 1.490712</span></span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Critical activities</span></span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>y[<span class="dv">5</span>]</span>
-<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $CritAct</span></span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;A&quot; &quot;B&quot; &quot;E&quot; &quot;H&quot; &quot;I&quot;</span></span>
-<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Free float and conditional float values</span></span>
-<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>y[<span class="dv">6</span>]</span>
-<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $AddSlacks</span></span>
-<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Name FST CST</span></span>
-<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1    A 0.0 0.0</span></span>
-<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2    B 0.0 0.0</span></span>
-<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3    C 0.0 2.0</span></span>
-<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4    D 0.0 1.5</span></span>
-<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5    E 0.0 0.0</span></span>
-<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6    F 2.0 0.0</span></span>
-<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 7    G 1.5 0.0</span></span>
-<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 8    H 0.0 0.0</span></span>
-<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 9    I 0.0 0.0</span></span></code></pre></div>
-<p>The activity graph, the Gantt, ASAP anad ALAP charts are obtained in
-the same way as before.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_graphAOA</span>(<span class="at">solved =</span> y)</span></code></pre></div>
+<p>A very important difference is the appearance of the NA symbol, which
+in this case means the lack of a immediately preceding activity.
+Activities A and B are not preceded by other activities, so this is
+where the whole project starts. If the action has several predecessors,
+their names should be separated by commas. Moreover, this example
+contains one dummy activity because C and D have the same start and end
+nodes. This dataset is available in the <em>critpath</em> package as
+<em>cpmexample2</em>.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_graphAOA</span>(cpmexample2, <span class="at">predecessors =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 <div class="figure" style="text-align: center">
-<div class="grViz html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-da20d83e608e85bf535a" style="width:576px;height:288px;"></div>
-<script type="application/json" data-for="htmlwidget-da20d83e608e85bf535a">{"x":{"diagram":"digraph {\n\ngraph [layout = \"neato\",\n       outputorder = \"edgesfirst\",\n       bgcolor = \"white\"]\n\nnode [fontname = \"Helvetica\",\n      fontsize = \"10\",\n      shape = \"circle\",\n      fixedsize = \"true\",\n      width = \"0.5\",\n      style = \"filled\",\n      fillcolor = \"aliceblue\",\n      color = \"gray70\",\n      fontcolor = \"gray50\"]\n\nedge [fontname = \"Helvetica\",\n     fontsize = \"8\",\n     len = \"1.5\",\n     color = \"gray80\",\n     arrowsize = \"0.5\"]\n\n  \"1\" [label = \"1\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"-3.79193792296025,-0.0914548108755271!\"] \n  \"2\" [label = \"2\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"-2.56434011923725,0.598121421643373!\"] \n  \"3\" [label = \"3\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"-1.02865022445243,1.50938614544936!\"] \n  \"4\" [label = \"4\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"-0.0471974517474819,2.13578363206815!\"] \n  \"5\" [label = \"5\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"-0.575063426432409,2.92485902140586!\"] \n  \"6\" [label = \"6\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"0.482928387912402,1.39405496801138!\"] \n  \"7\" [label = \"7\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"0.845729883934063,2.79654721723743!\"] \n  \"8\" [label = \"8\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"2.01743021297094,3.74686927800179!\"] \n\"1\"->\"2\" [label = \"A\", color = \"red\"] \n\"2\"->\"3\" [label = \"B\", color = \"red\"] \n\"3\"->\"4\" [label = \"C\", color = \"gray80\"] \n\"3\"->\"5\" [label = \"D\", color = \"gray80\"] \n\"3\"->\"6\" [label = \"E\", color = \"red\"] \n\"4\"->\"7\" [label = \"F\", color = \"gray80\"] \n\"5\"->\"7\" [label = \"G\", color = \"gray80\"] \n\"6\"->\"7\" [label = \"H\", color = \"red\"] \n\"7\"->\"8\" [label = \"I\", color = \"red\"] \n}","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div class="grViz html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-ffb4356bfbf1ca58ba5d" style="width:288px;height:288px;"></div>
+<script type="application/json" data-for="htmlwidget-ffb4356bfbf1ca58ba5d">{"x":{"diagram":"digraph {\n\ngraph [layout = \"neato\",\n       outputorder = \"edgesfirst\",\n       bgcolor = \"white\"]\n\nnode [fontname = \"Helvetica\",\n      fontsize = \"10\",\n      shape = \"circle\",\n      fixedsize = \"true\",\n      width = \"0.5\",\n      style = \"filled\",\n      fillcolor = \"aliceblue\",\n      color = \"gray70\",\n      fontcolor = \"gray50\"]\n\nedge [fontname = \"Helvetica\",\n     fontsize = \"8\",\n     len = \"1.5\",\n     color = \"gray80\",\n     arrowsize = \"0.5\"]\n\n  \"1\" [label = \"1\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"0.154515604710036,-0.866007838245259!\"] \n  \"2\" [label = \"2\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"1.49418054237566,-0.652695553195062!\"] \n  \"3\" [label = \"3\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"2.69637414919601,-0.966502681736203!\"] \n  \"4\" [label = \"4\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"0.927623927862696,-1.79459665517081!\"] \n  \"5\" [label = \"5\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"2.96772762277061,-0.321635488582245!\"] \n  \"6\" [label = \"6\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"2.25340317136056,-2.5176480660513!\"] \n  \"7\" [label = \"7\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"3.60211545794662,-1.69307381524003!\"] \n  \"8\" [label = \"8\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"5.06096810061866,-2.19007005179006!\"] \n\"1\"->\"2\" [label = \"A\", label = \"A\"] \n\"1\"->\"4\" [label = \"B\", label = \"B\"] \n\"2\"->\"3\" [label = \"D\", label = \"D\"] \n\"2\"->\"4\" [label = \"E\", label = \"E\"] \n\"2\"->\"5\" [label = \"C\", label = \"C\"] \n\"3\"->\"5\" [label = \"DummyD\", style = \"dotted\"] \n\"3\"->\"7\" [label = \"G\", label = \"G\"] \n\"4\"->\"6\" [label = \"H\", label = \"H\"] \n\"5\"->\"7\" [label = \"F\", label = \"F\"] \n\"6\"->\"7\" [label = \"I\", label = \"I\"] \n\"7\"->\"8\" [label = \"J\", label = \"J\"] \n}","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 <p class="caption">
-Fig. 6. Critical path for the pertexample1 dataset
+Fig. 2. Graph for the cpmexample2 dataset
 </p>
 </div>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_gantt</span>(y)</span></code></pre></div>
-<div class="figure" style="text-align: center">
-<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAkAAAAEgCAMAAABrWDzDAAAAt1BMVEUAAAAAADoAAGYAOpAAZrYAv8QA//8zMzM6AAA6AGY6OpA6kNtNTU1NTW5NTY5NbqtNjshmADpmOpBmtv9uTU1uTW5uTY5ubqtuq+SOTU2OTW6OTY6ObquOjo6OyP+QOgCQOjqQtpCQ2/+rbk2rbm6rbo6ryKur5Mir5P+2ZgC2tma2///Ijk3I///bkDrb///kq27k///r6+v4dm3/tmb/yI7/25D/5Kv//7b//8j//9v//+T////ioH4JAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAJLklEQVR4nO3dfXvTVBiA8SmoIAWmDFdQhzLUIdsYuK6M9vt/LnuStmvTnrc8Oec8ye77j+m1yz05aX5mba9mOZgTCToovQDqdwAiUQAiUQAiUQAiUQAiURZAP9AAywlo73c/d7DBLmboGaJmISFDAKRvSCcL+a/z9m8HQPqGAAhAxWcAKCo1x17P3gAoJjXHXs/eACgmNcdez94AKCY1x17P3gAoJjXHXs/eACgmNcdez94AKCY1x17P3gAoJjXHXs/eDAjQ9JcL17bUPORqhgAIQMVnACgqNcdez94MDpD56Mhnylb3gPZvhzOQviGcgQBUfAaAolJz7PXsDYBiUnPs9ewNgGJSc+z17M2AAHm2peYhVzMEQAAqPgNAUak59nr2BkAxqTn2evYGQDGpOfZ69gZAMak59nr2BkAxqTn2evYGQDGpOfZ69gZAMak59p0M6eRw59obAOkbAiAAiQIQgEQBCECiAAQgUQACkCgAAUgUgAAkCkAAEgUgAIkC0ApQ/WloPhMdGYAAJApAABIFoH2AuDY+uG4AZSotoKOR6RlnoKi6AdTBQlSdgazbAlAzAAFIFIAAJApAABIFIN6JFgUgAIkCEIBEAQhAogAEIFEAApAoAAFIFIAAJApAAHL0Xed9vy8AxQQgAIkCEIBEAQhAogAEIFEAApAoAAFIFIAAJApAABIFIACJAtBQAU1Go9Ghe1sAAlCzNaDJs4v57HTs3BaAANRsBWh2erL4Oj3+5NoWgADUbPuynuWGuDa+LhegTKUFtDr3LA3t/Y85A6UBlGdv0p+Bpkejp2eubQEIQM22nwPdvgbQRgDyd/cqzJx8JpyBNgOQv7v3gcxfCFr9eSAAVQHIH+9EOwKQPwA5ApA/ADkCkD8AOQKQPwA5ApA/ADkCkD8AOQKQPwA5ApA/ADlKLQdALQIQgEQBCECiAAQgUQACkCgAAUgUgAAkCkAAEgUgAIkCEIBEAWiogOq7po5d2wIQgJptANq4NhVAVQDyByBHAPK3DxDXxi/LBShTOZ4Drf5AEGcgUy5AefaGX2HZhwDIH4AcAcgfgBwByB+AHN0TQLt3MIvYLu9EOwKQPwA5ApA/ADkCkD8AOQKQPwA5ApA/ADkCkD8AOQKQv8EB2n002gcgfwAS1afzKYCChgDIGoBChgDIWjtA1wcHBw8+zm8eLf558O2H5g8DCEBOQJfGzPsHH28eGzuXC0rbAQhALkBffnq7+Pr1zYsaUP11MwAByAXoenXK4QwEoFaAHi7/pX4OtOMHQAByArr5ceMMdP3N250fBhCAXIC2nwNd8ioMQLu5AG2/Cvv65mHzh9eA6iub+3+/MABZk70PVL8Ke/Sk8cN3gDY/Eg0gAAUGIAB1DqjXlzZnBtSnEgOqngM9X978mzNQIKDEe9PpEBug3Q+fRGyXX2EAAtBmALIGoJAhALKWGFD1HGh04toWgADUjHeiAQSgzQBkDUAhQwBkDUAhQwBkDUAhQwBkDUAhQwBkDUAhQwBkrQ2gm0cv5ssPRF/zkVYA7c0NyHygzABafbKs8cODA7T7aLRv75XsWfem0yGtAD3+92EFaP3Z1sYPAwhAbkAf3r8wX693f3tVAQhAHkBffjYfiL7e+TR0HYAA5AE0v3yy+Lq+vqcRgADkA/T1jz95DgSg9oDql2K8CgOQ5fteQDWee/I+EICs8U50yBAAWQNQyBAAWQNQyBAAWUsKqP5I9Il7WwACULM1IHNRxu2rlSAAASisLUDz6XHvr0wFkLUMgG5fmz/v0utr45MDKr2D7csAaPau938fKDmgrHvT6ZCk90zdPANZtwUgADXbBjTp/1/nAJC19IB4FQag2HgfCECieCcaQKIABCBRAAKQKAABSBSAACQKQAASBSAAiQIQgEQBKBbQFiMAAQhAogAEIFEAApAoAAFIFIAAJApAABIFIACJAhCARAEIQKIABCBRd4AmG7dMBRCAAlsDunp2MZ+fc1kPgOJaAaovKZyd9v6OhQCylhTQ+pLCOdfGhwAqvZttSgvocOvbnIE8gDLtTadD0l5YePxp89sAAlBYPAcCkChehQFIFO8DAUgU70QDSBSAACQKQAASBSAAiQIQgEQBCECiAAQgUdkBpb6TO4CsASik8JX04Xza6RAAAUg0BEAAEg0BEIBEQwAEINEQAAFINARAABINARCAREMABCDREAABSDQkLaDt+z0BKN+MoQAyd5ybvkx+y0sAFRuSAVCGm+4CqNiQHGeg6vLCpJc2pwaUbOH9L8dzoPTXhaUGFL4SzkBd1PgVlv7KVAAVG5IB0PwcQFEBaBtQfYW8dVsASjFjKIB4H6hFAOKdaFEAApAoAAFIFIAAJApAABIFIACJAhCARAEIQKIAFAWoiwPcq4c8ywwAAagfQwC0Ts0QNQsBUFRqhqhZCICiUjNEzUIAFJWaIWoWAqCo1AxRsxAARaVmiJqFACgqNUPULARAUakZomYhAIpKzRA1C1EBaP2RegDlnDEcQJPfx+5tASjFjMEAmr375zf3DecAlGLGYABNjz/V1xVar43vBBCVKjWgq/Hdzb85A+WbMZQz0Ox0NBqZO+/atwWgFDOGAqj60y7ua+MBlGLGUABdGTur32EAyjdjIIBmf5nfXqu3ggCUb8ZAAIVsC0ApZgAIQP0YAqB1aoaoWQiAolIzRM1CABSVmiFqFgKgqNQMUbMQAEWlZoiahQAoKjVD1CykH4Du3UOeZQaAourVQ55lBoCi6tVDnmXGMAHRAMsIyMIqxQraxEJ2KrUSAIlSs5B+ACJqBiASBSASBSASBSASFQ7o9tX6jqpFq++MV3wx5v5qJxoWMp/UV2MVWkkwIHM71atD/3+Xuol5tMovxlx9MH15Vn4h1f9QiyWUWkkwoNtfL5b3VS3a+dO/F4sov5jq+qfzk/ILqVosodRKggGZ6w43/v5LucyjpGMxixXoWIg59ZRaSTCgyXMVD1UNSMViZqdjHQuZHj09K7YSzkBtu301VvOoFDwX9u05UA1IwWKmR+ZScAULqSr3bCziVdi49OuNOvMolV9M7UfBQla/u0qthPeB2nU1Mp2UX0i1lMVzIPXvAxHtC0AkCkAkCkAkCkAkCkAkCkAkCkAkCkAk6n9ifQKwEVyQjAAAAABJRU5ErkJggg==" alt="Fig. 7. Gantt chart for the pertexample1 dataset" />
-<p class="caption">
-Fig. 7. Gantt chart for the pertexample1 dataset
-</p>
-</div>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_asap</span>(y)</span></code></pre></div>
-<div class="figure" style="text-align: center">
-<img src="data:image/png;base64,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" alt="Fig. 8. ASAP chart for the pertexample1 dataset" />
-<p class="caption">
-Fig. 8. ASAP chart for the pertexample1 dataset
-</p>
-</div>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_alap</span>(y)</span></code></pre></div>
-<div class="figure" style="text-align: center">
-<img src="data:image/png;base64,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" alt="Fig. 9. ALAP chart for the pertexample1 dataset" />
-<p class="caption">
-Fig. 9. ALAP chart for the pertexample1 dataset
-</p>
-</div>
-<p>To set deadlines corresponding to the schedules of the risk-taker and
-the belayer, we will use the <em>PERT_newtime()</em> function.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Risk-taker&#39;s schedule</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">PERT_newtime</span>(<span class="at">new_prob =</span> <span class="fl">0.3</span>, y)</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; New expected compl. time:  30.21827</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $probDT</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.3</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $newDT</span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 30.21827</span></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Belayer&#39;s schedule</span></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="fu">PERT_newtime</span>(<span class="at">new_prob =</span> <span class="fl">0.6</span>, y)</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; New expected compl. time:  31.37767</span></span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $probDT</span></span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.6</span></span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $newDT</span></span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 31.37767</span></span></code></pre></div>
-<p>The <em>PERT_newprob()</em> function answers to the question about
-the probability of completing the project for a given directive term.
-For example the probability that the project will end after 30 days</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">PERT_newprob</span>(<span class="at">new_DT =</span> <span class="dv">30</span>, y)</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Prob. of completion:  0.2511675</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $newDT</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 30</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $prob_compl</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.2511675</span></span></code></pre></div>
-<p>Besides, the <em>plot_norm()</em> function draws a plot of the normal
-distribution of a random variable describing the expected directive
-term.</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_norm</span>(y)</span></code></pre></div>
-<div class="figure" style="text-align: center">
-<img src="data:image/png;base64,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" alt="Fig. 10. Normal distribution for the pertexample1 dataset" />
-<p class="caption">
-Fig. 10. Normal distribution for the pertexample1 dataset
-</p>
-</div>
-<p>Additional vertical lines indicate the schedules of the risk-taker
-and the belayer.</p>
+<p>Dummy activities are marked with a dashed line. The examples above
+assumed a deterministic duration of the activity, but for duration as a
+random variable, the graph structure should also be given in one of the
+ways listed.</p>
+<p>The list of activities immediately preceding must be transformed into
+a set of pairs of start and end nodes. This is the only way to create a
+graph in the <em>DiagrammeR</em> package. We used an algorithm by Cohen
+and Sadeh. This algorithm not only creates a from-to list for
+activities, but also allows dummy activities to be added to the graph.
+However, it has a disadvantage. After adding dummies, it is very likely
+that for some activities the start node number will be higher than the
+end node number. This can lead the <em>critpath</em> package to
+incorrect results, e.g. incorrect project completion date. Therefore, a
+function has been added that renumbers the nodes of the Cohen and Sadeh
+algorithm so that the starting node has a lower number than the end
+one.</p>
+<p>Graphs are drawn by the <em>render_graph()</em> function from the
+<em>DiagrammeR</em> package using the Fruchterman-Reingold algorithm. It
+is to guarantee, among others not intersecting the edges, but this is
+not always possible. Besides, subsequent runs of this function for the
+same problem can produce (and often do) a graph that is placed on the
+plane in a slightly different way each time.</p>
 </div>
 
 

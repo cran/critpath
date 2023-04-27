@@ -18,6 +18,7 @@ cpmexample1
 }
 \description{
 Fictitious data that is used in the examples.
-In this dataset, the activities occur on the edges
+6 activities, 5 nodes.
+In this dataset, the activities occur on the edges.
 }
 \keyword{datasets}

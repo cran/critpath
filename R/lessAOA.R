@@ -1,16 +1,23 @@
 # Function that reads data in the DiagrammeR package format.
 # Changing labels to character mode to display them on the graph.
-# Data frame for the CPM method.
 
-read_lessAOA <- function(yourdata){
-  if (ncol(yourdata) == 7){
-    create_edge_df(from = as.integer(yourdata[,1]), to = as.integer(yourdata[,2]),
-                   label = as.character(yourdata[,3]),
-                   time = yourdata[,4], bound_time = yourdata[,5],
-                   TS = rep(0, nrow(yourdata)),
-                   accel_cost = (yourdata[,7]-yourdata[,6])/(yourdata[,4]-yourdata[,5]))
+read_lessAOA <- function(yourdata, predecessors){
+  # Check if the DiagrammeR package is loaded. If not, load it.
+  pckg_check("DiagrammeR")
+
+  if (predecessors == FALSE){
+    stopifnot("The data frame for LESS has the wrong number of columns" = ncol(yourdata) == 7)
+
+    make_relations_lessAOA(yourdata)
   }else{
-    print("The data frame for the LESS method should have 7 columns. Check the documentation.")
+    stopifnot("The data frame for LESS has the wrong number of columns" = ncol(yourdata) == 6)
+    # After switching from the activities immediately preceding.
+    AOA_df <- input_predAOA(yourdata)
+
+    # New dataframe after concatenating the predecessor and duration.
+    mergedAOA_df <- merge_pred_lessAOA(yourdata, AOA_df)
+
+    make_relations_lessAOA(mergedAOA_df)
   }
 }
 #===============================================================================
@@ -103,10 +110,10 @@ calc_IC <- function(ICconst, ICslope, tfinal){
 #===============================================================================
 # Solving the LESS method
 
-#' Determines the solution using the LESS method
+#' Determines the solution using the LESS method. Relationships between activities can be given as a list of predecessors or start and end node numbers.
 #'
 #' @param input_data Data frame containing the graph structure and activity durations.
-#'   The frame consists of 7 columns (the order matters):
+#'   For the LESS method and start/end nodes you need 7 columns (the order matters):
 #'   \enumerate{
 #'   \item \code{from} The number of the node where the activity starts.
 #'   \item \code{to} The number of the node where the activity ends.
@@ -116,17 +123,28 @@ calc_IC <- function(ICconst, ICslope, tfinal){
 #'   \item \code{norm_cost} Normal costs.
 #'   \item \code{bound_cost} Boundary costs.
 #'   }
+#'   For the LESS method and predecessors list you need 6 columns (the order matters):
+#'   \enumerate{
+#'   \item \code{label} Activity labels.
+#'   \item \code{pred} List of predecessors.
+#'   \item \code{time} Normal duration of the activity.
+#'   \item \code{bound_time} Boundary (the shortest possible) duration of activities.
+#'   \item \code{norm_cost} Normal costs.
+#'   \item \code{bound_cost} Boundary costs.
+#'   }
 #' @param ICconst Intercept of the indirect cost function.
 #' @param ICslope Slope of the indirect cost function.
+#' @param predecessors TRUE if the user data contains a list of immediately preceding activities
+#'   If set to \code{FALSE} (default), start nad end nodes are used. If is set to \code{TRUE}, predecessors list is used.
 #' @return A list made of a graph and a result set.
 #' @examples
 #' z <-  solve_lessAOA(lessexample1, 50, 15)
 #' @import DiagrammeR
 #' @export
-solve_lessAOA <- function(input_data, ICconst, ICslope){
+solve_lessAOA <- function(input_data, ICconst, ICslope, predecessors = FALSE){
   LF <- ES <- TS <- nodes_num <- accel_cost <- time <- bound_time <- label <- normal_DT <- NULL
 # Reading data and creating a graph
-  relations <- read_lessAOA(input_data)
+  relations <- read_lessAOA(input_data, predecessors)
   vertices <- make_nodeslessAOA(relations)
 # the number of vertices in the graph
   nodes_num <- max(relations$to)
@@ -255,4 +273,31 @@ plot_TC <- function(your_list){
   ggplot(iter_res, aes(x = iter, y = TC)) + geom_point() + geom_line() +
     geom_text(aes(label = TC), vjust = -1)
 }
+#===============================================================================
+# Creates dataframes from the input_predAOA function and user's data.
+# Duration is probabilistic.
 
+merge_pred_lessAOA <- function(yourdata, predecdata){
+  # If dummy actions have been added, the number of rows is different.
+  dummy_rows <- nrow(predecdata) - nrow(yourdata)
+  if (dummy_rows == 0){
+    predecdata <- data.frame(predecdata, yourdata[,3:6])
+  }else{
+    dummy_mat <- matrix(0, nrow = dummy_rows, ncol = 4)
+    colnames(dummy_mat) <- colnames(yourdata[,3:6])
+    tmp <- rbind(yourdata[,3:6], dummy_mat)
+    predecdata <- data.frame(predecdata, tmp)
+  }
+  # Sort the data frame by node numbers.
+  predecdata <- predecdata[with(predecdata, order(from, to)),]
+}
+#===============================================================================
+# Creates relations from an input data frame.
+make_relations_lessAOA <- function(inputdata){
+
+  create_edge_df(from = as.integer(inputdata[,1]), to = as.integer(inputdata[,2]),
+                 label = as.character(inputdata[,3]),
+                 time = inputdata[,4], bound_time = inputdata[,5],
+                 TS = rep(0, nrow(inputdata)),
+                 accel_cost = (inputdata[,7]-inputdata[,6])/(inputdata[,4]-inputdata[,5]))
+}

@@ -19,7 +19,7 @@ knitr::kable(cbind(as.numeric(from), to, label, time), col.names = c("Start. nod
 library(critpath)
 plot_graphAOA(cpmexample1)
 
-## ---- fig.align = 'center'----------------------------------------------------
+## ---- fig.align = 'center', fig.cap = "Fig. 1. Graph for the cpmexample1 dataset"----
 plot_graphAOA(cpmexample1)
 
 ## -----------------------------------------------------------------------------
@@ -35,16 +35,16 @@ x[4]
 # Free float and conditional float values
 x[5]
 
-## ---- fig.align = 'center'----------------------------------------------------
+## ---- fig.align = 'center', fig.cap = "Fig. 2. Critical path for the cpmexample1 dataset"----
 plot_graphAOA(solved = x)
 
-## ---- fig.align = 'center', fig.width = 6, fig.cap = "Gantt chart"------------
+## ---- fig.align = 'center', fig.width = 6, fig.cap = "Fig. 3. Gantt chart for the cpmexample1 dataset"----
 plot_gantt(x)
 
-## ---- fig.align = 'center', fig.width = 6, fig.cap = "ASAP chart"-------------
+## ---- fig.align = 'center', fig.width = 6, fig.cap = "Fig. 4. ASAP chart for the cpmexample1 dataset"----
 plot_asap(x)
 
-## ---- fig.align = 'center', fig.width = 6, fig.cap = "ALAP chart"-------------
+## ---- fig.align = 'center', fig.width = 6, fig.cap = "Fig. 5. ALAP chart for the cpmexample1 dataset"----
 plot_alap(x)
 
 ## ---- echo = FALSE------------------------------------------------------------
@@ -74,16 +74,16 @@ y[5]
 # Free float and conditional float values
 y[6]
 
-## ---- fig.align = 'center',  fig.width = 6------------------------------------
+## ---- fig.align = 'center',  fig.width = 6, fig.cap = "Fig. 6. Critical path for the pertexample1 dataset"----
 plot_graphAOA(solved = y)
 
-## ---- fig.align = 'center', fig.width = 6, fig.cap = "Gantt chart"------------
+## ---- fig.align = 'center', fig.width = 6, fig.cap = "Fig. 7. Gantt chart for the pertexample1 dataset"----
 plot_gantt(y)
 
-## ---- fig.align = 'center', fig.width = 6, fig.cap = "ASAP chart"-------------
+## ---- fig.align = 'center', fig.width = 6, fig.cap = "Fig. 8. ASAP chart for the pertexample1 dataset"----
 plot_asap(y)
 
-## ---- fig.align = 'center', fig.width = 6, fig.cap = "ALAP chart"-------------
+## ---- fig.align = 'center', fig.width = 6, fig.cap = "Fig. 9. ALAP chart for the pertexample1 dataset"----
 plot_alap(y)
 
 ## -----------------------------------------------------------------------------
@@ -97,6 +97,6 @@ PERT_newtime(new_prob = 0.6, y)
 # 
 PERT_newprob(new_DT = 30, y)
 
-## ---- fig.align = 'center', fig.width = 6-------------------------------------
+## ---- fig.align = 'center', fig.width = 6, fig.cap = "Fig. 10. Normal distribution for the pertexample1 dataset"----
 plot_norm(y)
 

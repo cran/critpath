@@ -4,10 +4,12 @@
 \alias{plot_graphAOA}
 \title{A graph of connections between nodes}
 \usage{
-plot_graphAOA(input_data, solved = NULL, fixed_seed = 23)
+plot_graphAOA(input_data, predecessors = FALSE, solved = NULL, fixed_seed = 23)
 }
 \arguments{
 \item{input_data}{Data frame describing the problem.}
+
+\item{predecessors}{TRUE if the user data contains a list of immediately preceding activities}
 
 \item{solved}{List of objects that make up the solution to the project management problem.}
 

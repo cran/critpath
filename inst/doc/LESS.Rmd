@@ -54,7 +54,7 @@ The time-cost analysis runs in iterations and can be described with the followin
 
 **Notice!**
 
-The *critpath* package requires the *DiagrammeR*, *ggplot2* and *reshape2* packages to be installed additionally.
+The *critpath* package requires the *DiagrammeR*, *ggplot2*, *reshape2* and *strigr* packages to be installed additionally.
 
 Let us assume that the activities are described on arcs (AoA model). Consider a small example where 5 nodes are connected by 7 actions as shown in the graph below.
 
@@ -63,11 +63,11 @@ library(critpath)
 plot_graphAOA(lessexample1)
 ```
 
-```{r, fig.align = 'center'}
+```{r, fig.align = 'center', fig.cap = "Fig. 1. Graph for the lessexample1 dataset"}
 plot_graphAOA(lessexample1)
 ```
 
-The *lessexample1* data set contains the data frame shown in the table below.
+The *lessexample1* data set contains the data frame shown in the table below. This is a variant in which a start and end node are given for each activity. It is also possible to provide a list of predecessors. See the Introduction vignette for more information.
 
 ```{r, echo = FALSE}
 from <- c(1, 1, 2, 2, 3, 3, 4)
@@ -117,12 +117,12 @@ z[7]
 
 Using the *plot_crit_pathAOA()* function we will obtain a graph with marked critical activities.
 
-```{r, fig.align = 'center'}
+```{r, fig.align = 'center', fig.cap = "Fig. 2. Critical activities for the lessexample1 dataset"}
 plot_graphAOA(solved = z)
 ```
 
 It is also possible to make a graph of the evolution of total costs thanks to the function *plot_TC()*.
 
-```{r, fig.align = 'center'}
+```{r, fig.align = 'center', fig.cap = "Fig. 3. Total cost chart for the lessexample1 dataset"}
 plot_TC(z)
 ```

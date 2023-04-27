@@ -7,12 +7,10 @@ read_cpmAOA <- function(yourdata){
   # Check if the DiagrammeR package is loaded. If not, load it.
   pckg_check("DiagrammeR")
 
-  if (ncol(yourdata) == 4){
-    create_edge_df(from = yourdata[,1], to = yourdata[,2], label = yourdata[,3],
+  stopifnot("The data frame for CPM has the wrong number of columns" = ncol(yourdata) == 4)
+
+  create_edge_df(from = yourdata[,1], to = yourdata[,2], label = yourdata[,3],
                    time = yourdata[,4], TS = rep(0, nrow(yourdata)))
-  }else{
-    print("The data frame for the CPM method should have 4 columns. Check the documentation.")
-  }
 }
 #===============================================================================
 # Function reads data in the DiagrammeR package format.
@@ -23,25 +21,40 @@ read_pertAOA <- function(yourdata){
   # Check if the DiagrammeR package is loaded. If not, load it.
   pckg_check("DiagrammeR")
 
-  if (ncol(yourdata) == 6){
-    create_edge_df(from = as.integer(yourdata[,1]), to = as.integer(yourdata[,2]),
+  stopifnot("The data frame for PERT has the wrong number of columns" = ncol(yourdata) == 6)
+
+  create_edge_df(from = as.integer(yourdata[,1]), to = as.integer(yourdata[,2]),
                    label = as.character(yourdata[,3]),
                    time = (yourdata[,4]+4*yourdata[,5]+yourdata[,6])/6,
                    timevar = (yourdata[,6]-yourdata[,4])^2/36,
                    TS = rep(0, nrow(yourdata)),)
-  }else{
-    print("The data frame for the PERT method should have 6 columns. Check the documentation.")
-  }
 }
 #===============================================================================
 # Creates relations from an input data frame.
 
-make_relationsAOA <- function(yourdata, deterministic){
-  if (deterministic == TRUE){
-    read_cpmAOA(yourdata)
+make_relationsAOA <- function(yourdata, deterministic, predecessors){
+  if (predecessors == FALSE){
+    # Sort the data frame by node numbers.
+    yourdata <- yourdata[order(yourdata[,1], yourdata[,2]),]
+    if (deterministic == TRUE){
+      read_cpmAOA(yourdata)
+    }else{
+      read_pertAOA(yourdata)
+    }
   }else{
-    read_pertAOA(yourdata)
+    # After switching from the activities immediately preceding.
+    AOA_df <- input_predAOA(yourdata)
+    if (deterministic == TRUE){
+      # New dataframe after concatenating the predecessor and duration.
+      mergedAOA_df <- merge_pred_detAOA(yourdata, AOA_df)
+      read_cpmAOA(mergedAOA_df)
+    }else{
+      # New dataframe after concatenating the predecessor and duration.
+      mergedAOA_df <- merge_pred_probAOA(yourdata, AOA_df)
+      read_pertAOA(mergedAOA_df)
+    }
   }
+
 }
 #===============================================================================
 # Creates a data frame to hold the vertices. Initially, they are all zero.
@@ -206,17 +219,23 @@ pckg_check <- function(pckg_name){
 
 # Function solving CPM and PERT methods. The argument is a data frame with information about the problem
 
-#' Finds a solution using CPM and PERT methods
+#' Finds a solution using CPM and PERT methods. Relationships between activities can be given as a list of predecessors or start and end node numbers.
 #'
 #' @param input_data Data frame containing the structure of the graph and the duration of the activity.
-#'   For the CPM method there will be 4 columns (the order is important, not the name of the column):
+#'   For the CPM method and start/end nodes you need 4 columns (the order is important, not the name of the column):
 #'   \enumerate{
 #'   \item \code{from} The number of the node where the activity starts.
 #'   \item \code{to} The number of the node where the activity ends.
 #'   \item \code{label} Activity labels.
 #'   \item \code{time} Activities duration.
 #'   }
-#'   For the PERT method there will be 6 columns (the order is important, not the name of the column):
+#'   For the CPM method and predecessors list you need 3 columns (the order is important, not the name of the column):
+#'   \enumerate{
+#'   \item \code{label} Activity labels.
+#'   \item \code{pred} List of predecessors.
+#'   \item \code{time} Activities duration.
+#'   }
+#'   For the PERT method and start/end nodes you need 6 columns (the order is important, not the name of the column):
 #'   \enumerate{
 #'   \item \code{from} The number of the node where the activity starts.
 #'   \item \code{to} The number of the node where the activity ends.
@@ -225,22 +244,34 @@ pckg_check <- function(pckg_name){
 #'   \item \code{likely_time} The most likely duration of the activity.
 #'   \item \code{pes_time} Pessimistic duration of activities.
 #'   }
+#'   For the PERT method and predecessors list you need 5 columns (the order is important, not the name of the column):
+#'   \enumerate{
+#'   \item \code{label} Activity labels.
+#'   \item \code{pred} List of predecessors.
+#'   \item \code{opt_time} Optimistic duration of activities.
+#'   \item \code{likely_time} The most likely duration of the activity.
+#'   \item \code{pes_time} Pessimistic duration of activities.
+#'   }
 #' @param deterministic A logical parameter specifying the solution method.
 #'   If set to \code{TRUE} (default), the CPM method is used. If is set to \code{FALSE}, the PERT method is used.
+#' @param predecessors TRUE if the user data contains a list of immediately preceding activities
+#'   If set to \code{FALSE} (default), start nad end nodes are used. If is set to \code{TRUE}, predecessors list is used.
 #' @return The list is made of a graph, schedule and selected partial results.
 #' @examples
 #' x <- solve_pathAOA(cpmexample1, deterministic = TRUE)
 #' y <- solve_pathAOA(pertexample1, deterministic = FALSE)
+#' x <- solve_pathAOA(cpmexample2, deterministic = TRUE, predecessors = TRUE)
+#' y <- solve_pathAOA(pertexample2, deterministic = FALSE, predecessors = TRUE)
 #' @import DiagrammeR
 #' @import utils
 #' @export
-solve_pathAOA <- function(input_data, deterministic = TRUE){
+solve_pathAOA <- function(input_data, deterministic = TRUE, predecessors = FALSE){
   # Check if the DiagrammeR package is loaded. If not, load it.
   pckg_check("DiagrammeR")
 
   solved_pathAOA <- vector("list", length = 4)
   # Loads data and creates a relations data frame.
-  relations <- make_relationsAOA(input_data, deterministic)
+  relations <- make_relationsAOA(input_data, deterministic, predecessors)
   # Creates graph and schedule and writes them into list.
   scheduleAOA(relations, deterministic)
 }
@@ -284,6 +315,7 @@ plot_crit_pathAOA <- function(yourlist, fixed_seed = 23){
 #'A Gantt chart
 #'
 #' @param yourlist List of objects that make up the solution to the project management problem.
+#' @param show_dummy Decides whether dummy activities should be included in the chart. If so, set it to TRUE (set to FALSE by default).
 #' @param bar_size Thickness of the bar drawn for activity (set to 10 by default).
 #' @return Draws a Gantt chart broken down into critical ("CR") and non-critical ("NC") activities.
 #'   Marks the slack of time.
@@ -293,7 +325,7 @@ plot_crit_pathAOA <- function(yourlist, fixed_seed = 23){
 #' @import ggplot2
 #' @import reshape2
 #' @export
-plot_gantt <- function(yourlist, bar_size = 10){
+plot_gantt <- function(yourlist, show_dummy = FALSE, bar_size = 10){
   Name <- TSij <- value <- NULL
   # Check if ggplot2 package is loaded. If not, load it.
   pckg_check("ggplot2")
@@ -304,7 +336,16 @@ plot_gantt <- function(yourlist, bar_size = 10){
   # Check if yourlist is a list
   stopifnot("The function requires a list" = is.list(yourlist))
 
-  schedule <- yourlist[[2]]
+  # Identify dummy activities
+  dummy_rows <- which(yourlist[[2]]$Time == 0)
+
+  if (length(dummy_rows) == 0){
+    schedule <- yourlist[[2]]
+  }else if (show_dummy == TRUE){
+    schedule <- yourlist[[2]]
+  }else{
+    schedule <- yourlist[[2]][-dummy_rows,]
+  }
 
   # Sorting the schedule according to slack of time.
   dftmp <- schedule[order(schedule$TSij),]
@@ -346,7 +387,6 @@ plot_gantt <- function(yourlist, bar_size = 10){
 #' y <- solve_pathAOA(pertexample1, deterministic = FALSE)
 #' plot_norm(y)
 #' @import ggplot2
-#' @import stats
 #' @export
 plot_norm <- function(yourlist){
   z <- df <- x <- NULL
@@ -358,16 +398,16 @@ plot_norm <- function(yourlist){
   stopifnot("The function requires a list" = is.list(yourlist))
 
   # Risk-taker schedule
-  hryz <- qnorm(0.3, yourlist[[3]], yourlist[[4]])
+  hryz <- stats::qnorm(0.3, yourlist[[3]], yourlist[[4]])
   #Belayer schedule
-  hase <- qnorm(0.6, yourlist[[3]], yourlist[[4]])
+  hase <- stats::qnorm(0.6, yourlist[[3]], yourlist[[4]])
   # Check if ggplot2 package is loaded. If not, load it.
   pckg_check("ggplot2")
   # Variable that holds the random values plus/minus 3 variations
   z <- seq(yourlist[[3]]-3*yourlist[[4]], yourlist[[3]]+3*yourlist[[4]], 0.01)
-  df <- data.frame(x = z, y = dnorm(z))
-  df <- cbind(df, pnorm(z))
-  ggplot(df, aes(x, y = pnorm(z, yourlist[[3]], yourlist[[4]]))) +
+  df <- data.frame(x = z, y = stats::dnorm(z))
+  df <- cbind(df, stats::pnorm(z))
+  ggplot(df, aes(x, y = stats::pnorm(z, yourlist[[3]], yourlist[[4]]))) +
     geom_line() +
     labs(y = "P(DT<=x)") +
     geom_vline(xintercept = hryz, color='blue')+
@@ -378,14 +418,19 @@ plot_norm <- function(yourlist){
 #===============================================================================
 # Function that draws a graph before solving a problem.
 
-plot_dataAOA <- function(input_data, fixed_seed){
+plot_dataAOA <- function(input_data, predecessors, fixed_seed){
   time <- style <- NULL
+
+  if (predecessors == TRUE){
+    result_df <- input_predAOA(input_data)
+    input_data <- merge_pred_detAOA(input_data, result_df)
+  }
   relations <- create_edge_df(from = input_data[,1], to = input_data[,2],
-                            label = as.character(input_data[,3]), time = input_data[,4])
+                              label = as.character(input_data[,3]), time = input_data[,4])
   vertices <- make_nodesAOA(relations)
   # Build a graph from vertex and relationship data frames.
   yourgraph <- create_graph(nodes_df = vertices,
-                       edges_df = relations, directed = TRUE)
+                            edges_df = relations, directed = TRUE)
   # Mark the dummy activities with a dotted line
   if (min(input_data[,4])==0){
     yourgraph <- yourgraph %>%
@@ -405,6 +450,7 @@ plot_dataAOA <- function(input_data, fixed_seed){
 #'An ASAP chart
 #'
 #' @param yourlist List of objects that make up the solution to the project management problem.
+#' @param show_dummy Decides whether dummy activities should be included in the chart. If so, set it to TRUE (set to FALSE by default).
 #' @param bar_size Thickness of the bar drawn for activity (set to 10 by default).
 #' @return Draws an ASAP (activities start and finish As Soon As Possible) chart broken down into critical ("CR") and non-critical ("NC") activities.
 #'   Marks the slack of time.
@@ -414,7 +460,7 @@ plot_dataAOA <- function(input_data, fixed_seed){
 #' @import ggplot2
 #' @import reshape2
 #' @export
-plot_asap <- function(yourlist, bar_size = 10){
+plot_asap <- function(yourlist, show_dummy = FALSE, bar_size = 10){
   Name <- FST <- TSij <- value <- NULL
   # Check if ggplot2 package is loaded. If not, load it.
   pckg_check("ggplot2")
@@ -425,8 +471,22 @@ plot_asap <- function(yourlist, bar_size = 10){
   # Check if yourlist is a list
   stopifnot("The function requires a list" = is.list(yourlist))
 
+  # Identify dummy activities
+  dummy_rows <- which(yourlist[[2]]$Time == 0)
+
+  if (length(dummy_rows) == 0){
+    schedule <- yourlist[[2]]
+    addslacks <- yourlist[["AddSlacks"]]
+  }else if (show_dummy == TRUE){
+    schedule <- yourlist[[2]]
+    addslacks <- yourlist[["AddSlacks"]]
+  }else{
+    schedule <- yourlist[[2]][-dummy_rows,]
+    addslacks <- yourlist[["AddSlacks"]][-dummy_rows,]
+  }
+
   # Create temporary schedule with additional column
-  schedule <- cbind(yourlist[[2]], ResTimeij = yourlist[[2]]$EFij + yourlist[["AddSlacks"]]$FST)
+  schedule <- data.frame(schedule, ResTimeij = schedule$EFij + addslacks$FST)
 
   # Sorting the schedule according to slack of time.
   dftmp <- schedule[order(schedule$TSij),]
@@ -463,6 +523,7 @@ plot_asap <- function(yourlist, bar_size = 10){
 #'An ALAP chart
 #'
 #' @param yourlist List of objects that make up the solution to the project management problem.
+#' @param show_dummy Decides whether dummy activities should be included in the chart. If so, set it to TRUE (set to FALSE by default).
 #' @param bar_size Thickness of the bar drawn for activity (set to 10 by default).
 #' @return Draws an ALAP (activities start and finish As Late As Possible) chart broken down into critical ("CR") and non-critical ("NC") activities.
 #'   Marks the slack of time.
@@ -472,7 +533,7 @@ plot_asap <- function(yourlist, bar_size = 10){
 #' @import ggplot2
 #' @import reshape2
 #' @export
-plot_alap <- function(yourlist, bar_size = 10){
+plot_alap <- function(yourlist, show_dummy = FALSE, bar_size = 10){
   Name <- CST <- TSij <- value <- NULL
   # Check if ggplot2 package is loaded. If not, load it.
   pckg_check("ggplot2")
@@ -483,8 +544,22 @@ plot_alap <- function(yourlist, bar_size = 10){
   # Check if yourlist is a list
   stopifnot("The function requires a list" = is.list(yourlist))
 
+  # Identify dummy activities
+  dummy_rows <- which(yourlist[[2]]$Time == 0)
+
+  if (length(dummy_rows) == 0){
+    schedule <- yourlist[[2]]
+    addslacks <- yourlist[["AddSlacks"]]
+  }else if (show_dummy == TRUE){
+    schedule <- yourlist[[2]]
+    addslacks <- yourlist[["AddSlacks"]]
+  }else{
+    schedule <- yourlist[[2]][-dummy_rows,]
+    addslacks <- yourlist[["AddSlacks"]][-dummy_rows,]
+  }
+
   # Create temporary schedule with additional column
-  schedule <- cbind(yourlist[[2]], ResTimeij = yourlist[[2]]$LSij - yourlist[["AddSlacks"]]$CST)
+  schedule <- data.frame(schedule, ResTimeij = schedule$LSij - addslacks$CST)
 
   # Sorting the schedule according to slack of time.
   dftmp <- schedule[order(schedule$TSij),]
@@ -520,6 +595,7 @@ plot_alap <- function(yourlist, bar_size = 10){
 #'
 #' @param input_data Data frame describing the problem.
 #' @param solved List of objects that make up the solution to the project management problem.
+#' @param predecessors TRUE if the user data contains a list of immediately preceding activities
 #' @param fixed_seed Optional parameter setting random seed to user value to get similar looking plots each time the function is run (set to 23 by default).
 #' @return The function draws a graph showing dependencies between nodes. The "solved" parameter determines whether there is a critical path in the graph.
 #'   In that case, you must solve the problem first. In the examples below, the function first draws the graph only on the basis of the data frame and then
@@ -530,12 +606,12 @@ plot_alap <- function(yourlist, bar_size = 10){
 #' plot_graphAOA(solved = x)
 #' @import DiagrammeR
 #' @export
-plot_graphAOA <- function(input_data, solved = NULL, fixed_seed = 23){
+plot_graphAOA <- function(input_data, predecessors = FALSE, solved = NULL, fixed_seed = 23){
   # Check if DiagrammeR package is loaded. If not, load it.
   pckg_check("DiagrammeR")
 
   if(is.null(solved)){
-    plot_dataAOA(input_data, fixed_seed)
+    plot_dataAOA(input_data, predecessors, fixed_seed)
   }else{
     plot_crit_pathAOA(solved, fixed_seed)
   }
@@ -553,7 +629,6 @@ plot_graphAOA <- function(input_data, solved = NULL, fixed_seed = 23){
 #' @examples
 #' y <- solve_pathAOA(pertexample1, deterministic = FALSE)
 #' PERT_newtime(new_prob = 0.3, y)
-#' @import stats
 #' @export
 
 PERT_newtime <- function(new_prob = 0.5, yourlist){
@@ -561,7 +636,7 @@ PERT_newtime <- function(new_prob = 0.5, yourlist){
   stopifnot("Value not in range [0,1]" = new_prob >= 0,
             "Value not in range [0,1]" = new_prob <= 1,
             "The function requires a list" = is.list(yourlist))
-  DT <- qnorm(new_prob, yourlist[[3]], yourlist[[4]])
+  DT <- stats::qnorm(new_prob, yourlist[[3]], yourlist[[4]])
   cat("New expected compl. time: ", DT, "\n")
   list(probDT = new_prob, newDT = DT)
 }
@@ -577,13 +652,273 @@ PERT_newtime <- function(new_prob = 0.5, yourlist){
 #' @examples
 #' y <- solve_pathAOA(pertexample1, deterministic = FALSE)
 #' PERT_newprob(new_DT = 30, y)
-#' @import stats
 #' @export
 
 PERT_newprob <- function(new_DT, yourlist){
   # Check the entered parameters
   stopifnot("New term <= 0" = new_DT > 0, "The function requires a list" = is.list(yourlist))
-  probDT <- pnorm(new_DT, mean = yourlist[[3]], sd = yourlist[[4]])
+  probDT <- stats::pnorm(new_DT, mean = yourlist[[3]], sd = yourlist[[4]])
   cat("Prob. of completion: ", probDT, "\n")
   list(newDT = new_DT, prob_compl = probDT)
+}
+#===============================================================================
+# Creates a data frame from predecessors list.
+
+#' @import stringr
+
+# Prefer over specified package or packages
+# pckg_check("conflicted")
+# conflict_prefer("filter", "dplyr", "stats")
+# conflict_prefer("lag", "dplyr", "stats")
+#conflicts_prefer(
+#  dplyr::filter(),
+#  dplyr::lag(),
+#)
+
+input_predAOA <- function(yourdata){
+  occur_num <- Step2Col3 <- Step5Col4 <- dup_id <- NULL
+
+  # Check if the strigr package is loaded. If not, load it.
+  pckg_check("stringr")
+
+  # Check if the dplyr package is loaded. If not, load it.
+  pckg_check("dplyr")
+
+  # Check if the names in the first column are unique
+  stopifnot("Not all names are unique" = length(unique(yourdata[,1])) == nrow(yourdata))
+
+  # Remove spaces from all columns and create a new dataframe.
+  temp_df  <- as.data.frame(sapply(yourdata[,1:2], function(x) gsub(" " , "",x)))
+  # Rename the dataframe columns.
+  colnames(temp_df)[1:2] <- c("Activity", "Step1Col1")
+
+  # Duplicate the immediate predecessor column (column 1) into column 2.
+  temp_df <- data.frame(temp_df, Step2Col2 = temp_df$Step1Col1)
+
+  # Create a list of all predecessors without the NA values, which means no predecessor.
+  preced_constr_list <- unique(temp_df$Step1Col1[!is.na(temp_df$Step1Col1)])
+
+  # Which activities have no predecessors?
+  nopredec <- which(is.na(temp_df$Step2Col2))
+  temp_df$Step2Col2[nopredec[-1]] <- c("-")
+
+  # Add a column for start node numbers.
+  temp_df <- data.frame(temp_df, Step2Col3 = 0)
+
+  # Activities with NA will get number 1.
+  temp_df$Step2Col3[nopredec] <- 1
+
+  # Actions that have predecessors will be replaced with a "-" symbol.
+  for (i in seq_along(preced_constr_list)) {
+    # Row numbers where the given predecessor occurred.
+    predec <- which(temp_df$Step2Col2 == preced_constr_list[i])
+    temp_df$Step2Col2[predec[-1]] <- c("-")
+    # starting node numbers
+    temp_df$Step2Col3[predec] <- i + 1
+  }
+
+  # Add a column for dummy activities.
+  temp_df <- data.frame(temp_df, Step3Col4 = temp_df$Step2Col2)
+
+  # Auxiliary variables.
+  col4 <- NULL
+  col5 <- NULL
+  col6 <- NULL
+  counter <- 1
+  dummy_names <- NULL
+  # Point out and add dummy activities.
+  for (i in 1:c(nrow(yourdata)-1)){
+    # The number of occurrences of the action name in each row of the column.
+    occur_num <- str_count(temp_df$Step2Col2, temp_df$Activity[i])
+
+    # each activity can only occur once in a row
+    if(sum(occur_num, na.rm = TRUE) > 0){
+      stopifnot("Validate the list of predecessors" = max(occur_num, na.rm = TRUE) == 1)
+    }
+
+    # Did the activity only appear once?
+    if(sum(occur_num, na.rm = TRUE) > 1){
+      # In which rows did the activity occur?
+      # Check the length of the expression (after removing the commas) for the indicated activities.
+      # Replace the number of occurrences with the length of the expression.
+      occur_num[which(occur_num == 1)] <- str_length(str_remove(temp_df$Step2Col2[which(occur_num == 1)], ","))
+
+      # Replace dummy activity name.
+      temp_df$Step3Col4[which(occur_num > 1)] <- str_replace(temp_df$Step3Col4[which(occur_num > 1)], temp_df$Activity[i], str_c("Dummy",temp_df$Activity[i]))
+
+      # Remember the number and name of the activity that became dummy
+      dummy_names[counter] <- str_c("Dummy",temp_df$Activity[i])
+      col4[counter] <- i
+      col5[counter] <- temp_df$Activity[i]
+      # Remember the node number of the successor of the dummy activity.
+      col6[counter] <- temp_df$Step2Col3[which(occur_num > 1)]
+      counter <- counter + 1
+    }
+  }
+
+  # Add an empty column for the numbers of the nodes that complete the activity.
+  temp_df <- data.frame(temp_df, Step5Col4 = 0)
+
+  # Remove Dummy's name so it doesn't appear in search results.
+  bufcol <- temp_df$Step3Col4
+  bufcol <- str_replace(bufcol, "Dummy.", "-")
+
+  # Determine successor node numbers.
+  for (i in 1:c(nrow(yourdata)-1)){
+    # Does the activity appear in the list at least once?
+    occur_list <- str_which(bufcol, temp_df$Activity[i])
+    if(length(occur_list) > 0){
+      # Remember the successor node number.
+      temp_df$Step5Col4[i] <- temp_df$Step2Col3[occur_list[1]]
+    }else{
+      # The absence of a node for an activity means that it is dummy or ending.
+      if(length(str_which(col5, temp_df$Activity[i])) > 0){
+        temp_df$Step5Col4[i] <- max(c(temp_df$Step2Col3,temp_df$Step5Col4), na.rm = TRUE)+1
+      }
+    }
+  }
+
+  # Add the node number that ends the last activity.
+  last_node <- which(temp_df$Step5Col4 == 0)
+  temp_df$Step5Col4[last_node] <- max(c(temp_df$Step2Col3,temp_df$Step5Col4), na.rm = TRUE)+1
+
+  # Create a dummy name vector.
+  # dummy_names <- rep(c("Dummy"), length(col4))
+
+  # Add new rows to the dataframe.
+  if(!is.null(dummy_names)){
+    temp_df[c(nrow(temp_df)+1):c(nrow(temp_df) + length(dummy_names)),] <- NA
+
+    # Complete with data on dummy activities.
+    temp_df[c(nrow(yourdata)+1):nrow(temp_df), 1] <- dummy_names
+    temp_df[c(nrow(yourdata)+1):nrow(temp_df), 4] <- col4
+    temp_df[c(nrow(yourdata)+1):nrow(temp_df), 5] <- col5
+    temp_df[c(nrow(yourdata)+1):nrow(temp_df), 6] <- col6
+  }
+
+  # Additional dummy activities.
+  # Add columns to indicate duplicate rows with start and end node numbers.
+  temp_df <- temp_df %>%
+    dplyr::group_by(Step2Col3, Step5Col4) %>%
+    dplyr::mutate(num_dups = dplyr::n(),
+           dup_id = dplyr::row_number()) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(is_duplicated = dup_id > 1)
+
+  # If there are duplicate rows, change the node numbers.
+  if(length(which(temp_df$is_duplicated)) > 0){
+    # How many rows contain duplicate values?
+    dup_rows <- c(1:length(which(temp_df$is_duplicated)))
+
+    # Save the numbers of dummy activity nodes before changing their values.
+    nodes_before <- temp_df$Step5Col4[which(temp_df$is_duplicated)]
+
+    # Substitute node numbers for dummy activities identified.
+    temp_df$Step5Col4[which(temp_df$is_duplicated)] <- max(temp_df$Step5Col4)+dup_rows
+
+    # Generate a vector of dummy activity names.
+    # dummy_names <- rep(c("Dummy"), length(which(temp_df$is_duplicated)))
+    dummy_names <- str_c("Dummy",temp_df$Activity[nodes_before])
+
+    # Add new rows to the dataframe.
+    # temp_df[nrow(temp_df) + length(dummy_names),] <- NA
+    temp_df[c(nrow(temp_df)+1):c(nrow(temp_df) + length(dummy_names)),] <- NA
+
+    startrow <- nrow(temp_df) - length(dummy_names) + 1
+
+    # Complete with data on dummy activities.
+    temp_df[startrow:nrow(temp_df), 1] <- dummy_names
+    temp_df[startrow:nrow(temp_df), 4] <- temp_df$Step5Col4[which(temp_df$is_duplicated)]
+    temp_df[startrow:nrow(temp_df), 5] <- temp_df$Activity[which(temp_df$is_duplicated)]
+    temp_df[startrow:nrow(temp_df), 6] <- nodes_before
+  }
+
+  # Create a dataframe for AOA with start and end nodes.
+  # result_df <- data.frame(from = temp_df[, 4], to = temp_df[, 6], name = temp_df[, 1])
+  fromto_df <- data.frame(from = temp_df[, 4], to = temp_df[, 6], name = temp_df[, 1])
+  # Pass to node numbering.
+  set_numberAOA(fromto_df)
+}
+#===============================================================================
+# Creates dataframes from the input_predAOA function and user's data.
+# Duration is deterministic.
+
+merge_pred_detAOA <- function(yourdata, predecdata){
+  # If dummy actions have been added, the number of rows is different.
+  dummy_rows <- nrow(predecdata) - nrow(yourdata)
+  if (dummy_rows == 0){
+    predecdata <- data.frame(predecdata, duration = yourdata[,3])
+  }else{
+    tmp <- c(yourdata[,3], rep(0, dummy_rows))
+    predecdata <- data.frame(predecdata, duration = tmp)
+  }
+  # Sort the data frame by node numbers.
+  predecdata <- predecdata[with(predecdata, order(from, to)),]
+}
+#===============================================================================
+# Creates dataframes from the input_predAOA function and user's data.
+# Duration is probabilistic.
+
+merge_pred_probAOA <- function(yourdata, predecdata){
+  # If dummy actions have been added, the number of rows is different.
+  dummy_rows <- nrow(predecdata) - nrow(yourdata)
+  if (dummy_rows == 0){
+    predecdata <- data.frame(predecdata, yourdata[,3:5])
+  }else{
+    dummy_mat <- matrix(0, nrow = dummy_rows, ncol = 3)
+    colnames(dummy_mat) <- colnames(yourdata[,3:5])
+    tmp <- rbind(yourdata[,3:5], dummy_mat)
+    predecdata <- data.frame(predecdata, tmp)
+  }
+  # Sort the data frame by node numbers.
+  predecdata <- predecdata[with(predecdata, order(from, to)),]
+}
+#===============================================================================
+# Sets the graph node numbers.
+
+set_numberAOA <- function(input_dt){
+  # Set column names.
+  colnames(input_dt) <- c("from", "to", "name")
+
+  # Add columns for new node numbers.
+  input_dt <- data.frame(input_dt, from2 = 0, to2 = 0)
+
+  # Create a temporary graph in the DiagrammeR package.
+  myedges_df <- create_edge_df(from = input_dt$from, to = input_dt$to, label = input_dt$name)
+  nodes_num <- max(myedges_df$to)
+  mynodes_df <- create_node_df(n = nodes_num, type = c(1:nodes_num), label = TRUE)
+  tempgraph <- create_graph(nodes_df = mynodes_df, edges_df = myedges_df, directed = TRUE)
+
+  # Initial parameter values.
+  i <- 1
+  node_no <- 1
+  nodes_num <- count_nodes(tempgraph)
+
+  # A loop that changes node numbers so that the start number is lower than the end number.
+  while (i <= nodes_num){
+    # Which nodes have no predecessors?
+    nodes_selected <- tempgraph %>%
+      select_nodes_by_degree(
+        expressions = "indeg == 0") %>%
+      get_selection()
+
+    for (j in 1:length(nodes_selected)){
+      if (nrow(input_dt[input_dt$from == nodes_selected[j],]) > 0){
+        input_dt[input_dt$from == nodes_selected[j],]$from2 <- node_no
+      }
+      if (nrow(input_dt[input_dt$to == nodes_selected[j],]) > 0){
+        input_dt[input_dt$to == nodes_selected[j],]$to2 <- node_no
+      }
+      node_no <- node_no + 1
+    }
+    # Delete used nodes.
+    tempgraph <- tempgraph %>%
+      select_nodes_by_degree(
+        expressions = "indeg == 0") %>%
+      delete_nodes_ws()
+    # How many nodes have been examined?
+    i <- i + length(nodes_selected)
+  }
+  # Create a data frame for AOA with start and end nodes.
+  result_df <- data.frame(from = input_dt$from2, to = input_dt$to2, name = input_dt$name)
 }

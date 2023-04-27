@@ -8,7 +8,7 @@ knitr::opts_chunk$set(
 library(critpath)
 plot_graphAOA(lessexample1)
 
-## ---- fig.align = 'center'----------------------------------------------------
+## ---- fig.align = 'center', fig.cap = "Fig. 1. Graph for the lessexample1 dataset"----
 plot_graphAOA(lessexample1)
 
 ## ---- echo = FALSE------------------------------------------------------------
@@ -45,9 +45,9 @@ z[6]
 # The shortest directive term
 z[7]
 
-## ---- fig.align = 'center'----------------------------------------------------
+## ---- fig.align = 'center', fig.cap = "Fig. 2. Critical activities for the lessexample1 dataset"----
 plot_graphAOA(solved = z)
 
-## ---- fig.align = 'center'----------------------------------------------------
+## ---- fig.align = 'center', fig.cap = "Fig. 3. Total cost chart for the lessexample1 dataset"----
 plot_TC(z)
 
