@@ -4,7 +4,12 @@
 \alias{solve_pathAOA}
 \title{Finds a solution using CPM and PERT methods. Relationships between activities can be given as a list of predecessors or start and end node numbers.}
 \usage{
-solve_pathAOA(input_data, deterministic = TRUE, predecessors = FALSE)
+solve_pathAOA(
+  input_data,
+  deterministic = TRUE,
+  predecessors = FALSE,
+  pert_param = 0
+)
 }
 \arguments{
 \item{input_data}{Data frame containing the structure of the graph and the duration of the activity.
@@ -44,6 +49,12 @@ If set to \code{TRUE} (default), the CPM method is used. If is set to \code{FALS
 
 \item{predecessors}{TRUE if the user data contains a list of immediately preceding activities
 If set to \code{FALSE} (default), start nad end nodes are used. If is set to \code{TRUE}, predecessors list is used.}
+
+\item{pert_param}{A parameter that controls the method of calculating the expected value and variance in the PERT method.
+0 - classic formula (default), 1 - 1st and 99th percentile of the beta distribution, 2 - 5th and 95th percentile of the beta distribution,
+3 - 5th and 95th percentiles of the beta distribution with modification by (Perry and Greig, 1975), 4 - Extended Pearson's and Tukey's formula
+(Pearson and Tukey, 1965), 5 - Golenko-Ginzburg's full formula (Golenko-Ginzburg, 1988), 6 - Golenko-Ginzburg's reduced formula
+(Golenko-Ginzburg, 1988), 7 - Farnum's and Stanton's formula (Farnum and Stanton, 1987).}
 }
 \value{
 The list is made of a graph, schedule and selected partial results.

@@ -17,7 +17,7 @@ read_cpmAOA <- function(yourdata){
 # Change labels to character mode to display them on the graph.
 # Data frame for the PERT method. TS stands for slack of time.
 
-read_pertAOA <- function(yourdata){
+read_pertAOA <- function(yourdata, pert_param){
   # Check if the DiagrammeR package is loaded. If not, load it.
   pckg_check("DiagrammeR")
 
@@ -25,21 +25,21 @@ read_pertAOA <- function(yourdata){
 
   create_edge_df(from = as.integer(yourdata[,1]), to = as.integer(yourdata[,2]),
                    label = as.character(yourdata[,3]),
-                   time = (yourdata[,4]+4*yourdata[,5]+yourdata[,6])/6,
-                   timevar = (yourdata[,6]-yourdata[,4])^2/36,
+                   time = PERT_mu(pert_param, yourdata[,4], yourdata[,5], yourdata[,6]),
+                   timevar = PERT_var(pert_param, yourdata[,4], yourdata[,5], yourdata[,6]),
                    TS = rep(0, nrow(yourdata)),)
 }
 #===============================================================================
 # Creates relations from an input data frame.
 
-make_relationsAOA <- function(yourdata, deterministic, predecessors){
+make_relationsAOA <- function(yourdata, deterministic, predecessors, pert_param){
   if (predecessors == FALSE){
     # Sort the data frame by node numbers.
     yourdata <- yourdata[order(yourdata[,1], yourdata[,2]),]
     if (deterministic == TRUE){
       read_cpmAOA(yourdata)
     }else{
-      read_pertAOA(yourdata)
+      read_pertAOA(yourdata, pert_param)
     }
   }else{
     # After switching from the activities immediately preceding.
@@ -51,7 +51,7 @@ make_relationsAOA <- function(yourdata, deterministic, predecessors){
     }else{
       # New dataframe after concatenating the predecessor and duration.
       mergedAOA_df <- merge_pred_probAOA(yourdata, AOA_df)
-      read_pertAOA(mergedAOA_df)
+      read_pertAOA(mergedAOA_df, pert_param)
     }
   }
 
@@ -256,6 +256,11 @@ pckg_check <- function(pckg_name){
 #'   If set to \code{TRUE} (default), the CPM method is used. If is set to \code{FALSE}, the PERT method is used.
 #' @param predecessors TRUE if the user data contains a list of immediately preceding activities
 #'   If set to \code{FALSE} (default), start nad end nodes are used. If is set to \code{TRUE}, predecessors list is used.
+#' @param pert_param A parameter that controls the method of calculating the expected value and variance in the PERT method.
+#'   0 - classic formula (default), 1 - 1st and 99th percentile of the beta distribution, 2 - 5th and 95th percentile of the beta distribution,
+#'   3 - 5th and 95th percentiles of the beta distribution with modification by (Perry and Greig, 1975), 4 - Extended Pearson's and Tukey's formula
+#'   (Pearson and Tukey, 1965), 5 - Golenko-Ginzburg's full formula (Golenko-Ginzburg, 1988), 6 - Golenko-Ginzburg's reduced formula
+#'   (Golenko-Ginzburg, 1988), 7 - Farnum's and Stanton's formula (Farnum and Stanton, 1987).
 #' @return The list is made of a graph, schedule and selected partial results.
 #' @examples
 #' x <- solve_pathAOA(cpmexample1, deterministic = TRUE)
@@ -265,13 +270,13 @@ pckg_check <- function(pckg_name){
 #' @import DiagrammeR
 #' @import utils
 #' @export
-solve_pathAOA <- function(input_data, deterministic = TRUE, predecessors = FALSE){
+solve_pathAOA <- function(input_data, deterministic = TRUE, predecessors = FALSE, pert_param = 0){
   # Check if the DiagrammeR package is loaded. If not, load it.
   pckg_check("DiagrammeR")
 
   solved_pathAOA <- vector("list", length = 4)
   # Loads data and creates a relations data frame.
-  relations <- make_relationsAOA(input_data, deterministic, predecessors)
+  relations <- make_relationsAOA(input_data, deterministic, predecessors, pert_param)
   # Creates graph and schedule and writes them into list.
   scheduleAOA(relations, deterministic)
 }
@@ -921,4 +926,92 @@ set_numberAOA <- function(input_dt){
   }
   # Create a data frame for AOA with start and end nodes.
   result_df <- data.frame(from = input_dt$from2, to = input_dt$to2, name = input_dt$name)
+}
+
+#===============================================================================
+# Different approximation formulas for expected value in PERT.
+
+PERT_mu <- function(mtd, tija, tijm, tijb){
+  # Checks if mtd has the right value.
+  stopifnot("There is no approximation method with the given number." = mtd >=0 & mtd <= 7)
+
+  switch(as.character(mtd),
+         # Classic formula
+         "0" = (tija + 4* tijm + tijb)/6,
+         # 1st and 99th percentiles
+         "1" = (betainv(0.01, tija, tijm, tijb) + 4*tijm + betainv(0.99, tija, tijm, tijb))/6,
+         # 5th and 95th percentiles (Moder and Rodgers, 1968)
+         "2" = (betainv(0.05, tija, tijm, tijb) + 4*tijm + betainv(0.95, tija, tijm, tijb))/6,
+         # 5th and 95th percentiles by (Perry and Greig, 1975)
+         "3" = (betainv(0.05, tija, tijm, tijb) + 0.95*tijm + betainv(0.95, tija, tijm, tijb))/2.95,
+         # Extended Pearson-Tukey (Pearson and Tukey, 1965)
+         "4" = 0.185*betainv(0.05, tija, tijm, tijb) + 0.63*betainv(0.5, tija, tijm, tijb) + 0.185*betainv(0.95, tija, tijm, tijb),
+         # 1st version (Golenko-Ginzburg, 1988)
+         "5" = (2*tija + 9*tijm + 2*tijb)/13,
+         # 2nd version (Golenko-Ginzburg, 1988)
+         "6" = (3*tija + 2*tijb)/5,
+         # (Farnum and Stanton, 1987)
+         "7" = farnum_mu(tija, tijm, tijb)
+         )
+}
+
+#===============================================================================
+# Different approximation formulas for variance in PERT.
+
+PERT_var <- function(mtd, tija, tijm, tijb){
+  # Checks if mtd has the right value.
+  stopifnot("There is no approximation method with the given number." = mtd >=0 & mtd <= 7)
+
+  switch(as.character(mtd),
+         # Classic formula
+         "0" = (tijb - tija)^2/36,
+         # 1st and 99th percentiles
+         "1" = (betainv(0.99, tija, tijm, tijb) - betainv(0.01, tija, tijm, tijb))^2/36,
+         # 5th and 95th percentiles (Moder and Rodgers, 1968)
+         "2" = (betainv(0.95, tija, tijm, tijb) - betainv(0.05, tija, tijm, tijb))^2/10.2,
+         # 5th and 95th percentiles by (Perry and Greig, 1975)
+         "3" = (betainv(0.95, tija, tijm, tijb) - betainv(0.05, tija, tijm, tijb))^2/3.25^2,
+         # Extended Pearson-Tukey (Pearson and Tukey, 1965)
+         "4" = 0.185*betainv(0.05, tija, tijm, tijb)^2 + 0.63*betainv(0.5, tija, tijm, tijb)^2 + 0.185*betainv(0.95, tija, tijm, tijb)^2 - (0.185*betainv(0.05, tija, tijm, tijb) + 0.63*betainv(0.5, tija, tijm, tijb) + 0.185*betainv(0.95, tija, tijm, tijb))^2,
+         # 1st version (Golenko-Ginzburg, 1988)
+         "5" = ((tijb - tija)^2/1268)*(22 + 81*(tijm-tija)/(tijb-tija) - 81*((tijm - tija)/(tijb - tija))^2),
+         # 2nd version (Golenko-Ginzburg, 1988)
+         "6" = (tijb - tija)^2/25,
+         # (Farnum and Stanton, 1987)
+         "7" = farnum_var(tija, tijm, tijb)
+  )
+}
+#===============================================================================
+# Percentiles of the beta distribution.
+
+betainv <- function(p, a, b, c){
+  alpha <- beta <- qbeta <- NULL
+
+  alpha <- (4*(b-a)/(c-a)) + 1
+  beta <- (4*(c-b)/(c-a)) + 1
+  qbeta(p, alpha, beta)*(c - a) + a
+}
+
+#===============================================================================
+# Expected value by Farnum and Stanton
+
+farnum_mu <- function(a, b, c){
+
+  lim_left <- a + 0.13*(c - a)
+  lim_right <- a + 0.87*(c - a)
+
+  ifelse(b < lim_left, a + 2*(b - a)*(c - a)/(c - 3*a + 2*b),
+         ifelse(b > lim_right, a + (c - a)^2/(3*c - a - 2*b), (a + 4*b + c)/6))
+}
+
+#===============================================================================
+# Expected value by Farnum and Stanton
+
+farnum_var <- function(a, b, c){
+
+  lim_left <- a + 0.13*(c - a)
+  lim_right <- a + 0.87*(c - a)
+
+  ifelse(b < lim_left, ((b - a)^2)*(c - b)/(c - 2*a + b),
+         ifelse(b > lim_right, (b - a)*(c - b)^2/(2*c - a - b), (c - a)^2/36))
 }

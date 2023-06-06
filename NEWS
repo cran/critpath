@@ -1,3 +1,6 @@
+Changes in 0.2.1 version:
+* Additional formulas for expected value and variance in PERT.
+
 Changes in 0.2.0 version:
 * Added loading a graph as a list of predecessors.
 * Automatic addition of dummy activities based on the list of predecessors.

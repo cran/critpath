@@ -115,7 +115,7 @@ The plot_gantt(), plot_asap(), plot_alap() functions have an optional show_dummy
 
 ## Example of PERT analysis in the *critpath* package
 
-We will use a different data than in CPM. This data is available in a set named *pertexample1*. Let us assume that the duration of activities are random and described with three numerical values as in Table 2.
+We will use a different data than in CPM. This data is available in a set named *pertexample1*. Let us assume that the duration of activities are random and described with three numerical values as in Table 2. The package allows you to calculate the expected value and variance according to several different formulas (check the solve_pathAOA() function help). In this example, we will use classic formulas.
 
 ```{r, echo = FALSE}
 from <- c(1, 2, 3, 3, 3, 4, 5, 6, 7)
