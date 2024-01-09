@@ -13,19 +13,19 @@ For the LESS method and start/end nodes you need 7 columns (the order matters):
 \item \code{from} The number of the node where the activity starts.
 \item \code{to} The number of the node where the activity ends.
 \item \code{label} Activity labels.
-\item \code{time} Normal duration of the activity.
-\item \code{bound_time} Boundary (the shortest possible) duration of activities.
+\item \code{time} Normal duration of activities.
+\item \code{crash_time} Crash (the shortest possible) duration of activities.
 \item \code{norm_cost} Normal costs.
-\item \code{bound_cost} Boundary costs.
+\item \code{crash_cost} Crash costs.
 }
 For the LESS method and predecessors list you need 6 columns (the order matters):
 \enumerate{
 \item \code{label} Activity labels.
 \item \code{pred} List of predecessors.
-\item \code{time} Normal duration of the activity.
-\item \code{bound_time} Boundary (the shortest possible) duration of activities.
+\item \code{time} Normal duration of activities.
+\item \code{crash_time} Crash (the shortest possible) duration of activities.
 \item \code{norm_cost} Normal costs.
-\item \code{bound_cost} Boundary costs.
+\item \code{crash_cost} Crash costs.
 }}
 
 \item{ICconst}{Intercept of the indirect cost function.}

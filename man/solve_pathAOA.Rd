@@ -18,13 +18,13 @@ For the CPM method and start/end nodes you need 4 columns (the order is importan
 \item \code{from} The number of the node where the activity starts.
 \item \code{to} The number of the node where the activity ends.
 \item \code{label} Activity labels.
-\item \code{time} Activities duration.
+\item \code{time} Activities durations.
 }
 For the CPM method and predecessors list you need 3 columns (the order is important, not the name of the column):
 \enumerate{
 \item \code{label} Activity labels.
 \item \code{pred} List of predecessors.
-\item \code{time} Activities duration.
+\item \code{time} Activities durations.
 }
 For the PERT method and start/end nodes you need 6 columns (the order is important, not the name of the column):
 \enumerate{

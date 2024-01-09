@@ -28,7 +28,7 @@ x <- solve_pathAOA(cpmexample1, deterministic = TRUE)
 ## -----------------------------------------------------------------------------
 # Schedule
 x[2]
-# Directive term
+# Directive deadline
 x[3]
 # Critical activities
 x[4]
@@ -55,8 +55,8 @@ opt_time <- c(3, 5, 5, 1, 6, 2, 5, 3, 4)
 likely_time <- c(5, 7, 5, 6, 8, 6, 6, 5, 6)
 pes_time <- c(7, 9, 8, 8, 10, 7, 7, 7, 8)
 knitr::kable(cbind(as.numeric(from), to, label, opt_time, likely_time, pes_time), 
-             col.names = c("Start. node", "End. node", "Name", "Opt. time", 
-                           "Most like. time", "Pess. time"),
+             col.names = c("Start. node", "End. node", "Name", "Optimistic dur.", 
+                           "Most likely dur.", "Pessimistic dur."),
              align = "cccccc", caption = "Tab. 2. Data for the PERT model")
 
 ## -----------------------------------------------------------------------------
@@ -65,9 +65,9 @@ y <- solve_pathAOA(pertexample1, deterministic = FALSE)
 ## -----------------------------------------------------------------------------
 # Schedule
 y[2]
-# Expected directive term
+# Expected completion time
 y[3]
-# Standard deviation of the directive term
+# Standard deviation of the completion time
 y[4]
 # Critical activities
 y[5]
@@ -94,7 +94,6 @@ PERT_newtime(new_prob = 0.3, y)
 PERT_newtime(new_prob = 0.6, y)
 
 ## -----------------------------------------------------------------------------
-# 
 PERT_newprob(new_DT = 30, y)
 
 ## ---- fig.align = 'center', fig.width = 6, fig.cap = "Fig. 10. Normal distribution for the pertexample1 dataset"----

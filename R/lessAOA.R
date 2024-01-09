@@ -80,10 +80,10 @@ fill_graphAOA <- function(actgraph, frame){
   return(actgraph)
 }
 #===============================================================================
-# Function completes the TS value for the activities from the graph data frame.
+# Function completes the TF value for the activities from the graph data frame.
 
 fill_slackAOA <- function(actgraph, frame){
-  TS <- LF <- ES <- time <- NULL
+  TF <- LF <- ES <- time <- NULL
   for(i in 1:c(nrow(frame))){
     new_value <- get_node_attrs(actgraph, node_attr = LF,
                               nodes = frame$to[i]) - get_node_attrs(actgraph,
@@ -92,7 +92,7 @@ fill_slackAOA <- function(actgraph, frame){
                                                                                                             edge_attr = time,
                                                                                                             from = frame$from[i], to = frame$to[i])
 
-    actgraph <- set_edge_attrs(actgraph, edge_attr = TS, values = new_value,
+    actgraph <- set_edge_attrs(actgraph, edge_attr = TF, values = new_value,
                               from = frame$from[i], to = frame$to[i])
   }
   return(actgraph)
@@ -118,19 +118,19 @@ calc_IC <- function(ICconst, ICslope, tfinal){
 #'   \item \code{from} The number of the node where the activity starts.
 #'   \item \code{to} The number of the node where the activity ends.
 #'   \item \code{label} Activity labels.
-#'   \item \code{time} Normal duration of the activity.
-#'   \item \code{bound_time} Boundary (the shortest possible) duration of activities.
+#'   \item \code{time} Normal duration of activities.
+#'   \item \code{crash_time} Crash (the shortest possible) duration of activities.
 #'   \item \code{norm_cost} Normal costs.
-#'   \item \code{bound_cost} Boundary costs.
+#'   \item \code{crash_cost} Crash costs.
 #'   }
 #'   For the LESS method and predecessors list you need 6 columns (the order matters):
 #'   \enumerate{
 #'   \item \code{label} Activity labels.
 #'   \item \code{pred} List of predecessors.
-#'   \item \code{time} Normal duration of the activity.
-#'   \item \code{bound_time} Boundary (the shortest possible) duration of activities.
+#'   \item \code{time} Normal duration of activities.
+#'   \item \code{crash_time} Crash (the shortest possible) duration of activities.
 #'   \item \code{norm_cost} Normal costs.
-#'   \item \code{bound_cost} Boundary costs.
+#'   \item \code{crash_cost} Crash costs.
 #'   }
 #' @param ICconst Intercept of the indirect cost function.
 #' @param ICslope Slope of the indirect cost function.
@@ -142,7 +142,7 @@ calc_IC <- function(ICconst, ICslope, tfinal){
 #' @import DiagrammeR
 #' @export
 solve_lessAOA <- function(input_data, ICconst, ICslope, predecessors = FALSE){
-  LF <- ES <- TS <- nodes_num <- accel_cost <- time <- bound_time <- label <- normal_DT <- NULL
+  LF <- ES <- TF <- nodes_num <- accel_cost <- time <- crash_time <- label <- normal_DD <- NULL
 # Reading data and creating a graph
   relations <- read_lessAOA(input_data, predecessors)
   vertices <- make_nodeslessAOA(relations)
@@ -156,8 +156,8 @@ solve_lessAOA <- function(input_data, ICconst, ICslope, predecessors = FALSE){
   # Graph for normal times
   yourgraph <- fill_graphAOA(yourgraph, relations)
   yourgraph <- fill_slackAOA(yourgraph, relations)
-  # Save DT for normal times
-  normal_DT <- get_node_attrs(yourgraph, node_attr = LF, nodes = nodes_num)
+  # Save DD for normal times
+  normal_DD <- get_node_attrs(yourgraph, node_attr = LF, nodes = nodes_num)
 
   # total cost for tn
   DC <- sum(input_data[,6])
@@ -173,7 +173,7 @@ solve_lessAOA <- function(input_data, ICconst, ICslope, predecessors = FALSE){
 
     # Create a subgraph of critical activities.
     crit_graph <- yourgraph %>%
-      select_edges(conditions = TS == 0) %>%
+      select_edges(conditions = TF == 0) %>%
       transform_to_subgraph_ws() %>%
       clear_selection()
 
@@ -188,14 +188,14 @@ solve_lessAOA <- function(input_data, ICconst, ICslope, predecessors = FALSE){
         transform_to_subgraph_ws() %>%
         clear_selection()
 
-      # Modification of the subgraph so that it consists of only the edges with sij> 0 and time> bound_time
+      # Modification of the subgraph so that it consists of only the edges with sij> 0 and time> crash_time
       graphtmp <- graphtmp %>%
         select_edges(conditions = accel_cost > 0) %>%
         transform_to_subgraph_ws() %>%
         clear_selection()
 
       graphtmp <- graphtmp %>%
-        select_edges(conditions = time > bound_time) %>%
+        select_edges(conditions = time > crash_time) %>%
         transform_to_subgraph_ws() %>%
         clear_selection()
 
@@ -215,7 +215,7 @@ solve_lessAOA <- function(input_data, ICconst, ICslope, predecessors = FALSE){
     yourgraph <- create_graph(nodes_df = vertices, edges_df = relations,
                          directed = TRUE)
 
-    # Complete the main graph and determine TS
+    # Complete the main graph and determine TF
     yourgraph <- fill_graphAOA(yourgraph, relations)
     yourgraph <- fill_slackAOA(yourgraph, relations)
 
@@ -239,8 +239,8 @@ solve_lessAOA <- function(input_data, ICconst, ICslope, predecessors = FALSE){
   summ_graph <- data.frame(get_edge_info(best_graph)[,-4],
                             name = get_edge_attrs(best_graph, edge_attr = label),
                             time = get_edge_attrs(best_graph, edge_attr = time),
-                            bound.time = get_edge_attrs(best_graph, edge_attr = bound_time),
-                            TS = get_edge_attrs(best_graph, edge_attr = TS),
+                            crash.time = get_edge_attrs(best_graph, edge_attr = crash_time),
+                            TF = get_edge_attrs(best_graph, edge_attr = TF),
                             accel.cost = get_edge_attrs(best_graph, edge_attr = accel_cost)
   )
 
@@ -248,10 +248,10 @@ solve_lessAOA <- function(input_data, ICconst, ICslope, predecessors = FALSE){
   min_time <- get_node_attrs(best_graph, node_attr = LF, nodes = nodes_num)
 
   list(graphAOA = best_graph, summary_less = summ_graph,
-       critical = summ_graph$name[summ_graph$TS == 0],
+       critical = summ_graph$name[summ_graph$TF == 0],
        TC_iter = TC,
        min_cost = TC[length(TC)-1],
-       normal_DT = unname(normal_DT),
+       normal_DD = unname(normal_DD),
        min_time = unname(min_time))
 }
 #===============================================================================
@@ -297,7 +297,7 @@ make_relations_lessAOA <- function(inputdata){
 
   create_edge_df(from = as.integer(inputdata[,1]), to = as.integer(inputdata[,2]),
                  label = as.character(inputdata[,3]),
-                 time = inputdata[,4], bound_time = inputdata[,5],
-                 TS = rep(0, nrow(inputdata)),
+                 time = inputdata[,4], crash_time = inputdata[,5],
+                 TF = rep(0, nrow(inputdata)),
                  accel_cost = (inputdata[,7]-inputdata[,6])/(inputdata[,4]-inputdata[,5]))
 }

@@ -12,7 +12,7 @@
 
 <meta name="author" content="Adam Kucharski" />
 
-<meta name="date" content="2023-06-06" />
+<meta name="date" content="2024-01-06" />
 
 <title>CPM and PERT</title>
 
@@ -1554,7 +1554,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">CPM and PERT</h1>
 <h4 class="author">Adam Kucharski</h4>
-<h4 class="date">2023-06-06</h4>
+<h4 class="date">2024-01-06</h4>
 
 
 
@@ -1563,7 +1563,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <p>The table below provides information on the structure of the graph
 and the duration of activities in some example project. The same dataset
 is available in the <em>critpath</em> package as <em>cpmexample1</em>.
-This example assumes that the duration is deterministic. Starting and
+This example assumes that the durations are deterministic. Starting and
 ending node numbers are provided for each activity. It is also possible
 to pass the structure of the graph through a list of immediate
 predecessors. See the <em>Introduction</em> vignette.</p>
@@ -1663,14 +1663,14 @@ method used. For the CPM, these will be:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Schedule</span></span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>x[<span class="dv">2</span>]</span>
 <span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; $schedule</span></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt;   Name Time ESij LSij EFij LFij TSij Crit</span></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt; 1    A    3    0    1    3    4    1     </span></span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; 2    B    2    0    2    2    4    2     </span></span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; 3    C    5    0    0    5    5    0    *</span></span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt; 4    D    1    3    4    4    5    1     </span></span>
-<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; 5    E    1    2    4    3    5    2     </span></span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; 6    F    3    5    5    8    8    0    *</span></span>
-<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co"># Directive term</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt;   Name Duration ESij LSij EFij LFij TFij Crit</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt; 1    A        3    0    1    3    4    1     </span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; 2    B        2    0    2    2    4    2     </span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; 3    C        5    0    0    5    5    0    *</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt; 4    D        1    3    4    4    5    1     </span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; 5    E        1    2    4    3    5    2     </span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; 6    F        3    5    5    8    8    0    *</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co"># Directive deadline</span></span>
 <span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>x[<span class="dv">3</span>]</span>
 <span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt; $ComplTi</span></span>
 <span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt; [1] 8</span></span>
@@ -1721,8 +1721,8 @@ Fig. 3. Gantt chart for the cpmexample1 dataset
 </div>
 <p>The activities are displayed in the order they were entered. The
 critical ones are marked with <em>CR</em> and the non-critical ones with
-<em>NC</em>. Additionally, slacks greater than zero have been added for
-non-critical activities.</p>
+<em>NC</em>. Additionally, total floats greater than zero have been
+added for non-critical activities.</p>
 <p>Based on the Gantt chart we can plot two more charts. The first one
 is the ASAP chart which shows effetcs of starting activity as early as
 possible and end it as early as possible. It can be achieved withe the
@@ -1751,30 +1751,29 @@ placed on the chart.</p>
 <div id="example-of-pert-analysis-in-the-critpath-package" class="section level2">
 <h2>Example of PERT analysis in the <em>critpath</em> package</h2>
 <p>We will use a different data than in CPM. This data is available in a
-set named <em>pertexample1</em>. Let us assume that the duration of
-activities are random and described with three numerical values as in
-Table 2. The package allows you to calculate the expected value and
-variance according to several different formulas (check the
-solve_pathAOA() function help). In this example, we will use classic
-formulas.</p>
+set named <em>pertexample1</em>. Let us assume that the durations are
+described with three numerical values as in Table 2. The package allows
+you to calculate the expected value and variance according to several
+different formulas (check the solve_pathAOA() function help). In this
+example, we will use classic formulas.</p>
 <table>
 <caption>Tab. 2. Data for the PERT model</caption>
 <colgroup>
-<col width="18%" />
 <col width="15%" />
-<col width="8%" />
-<col width="15%" />
-<col width="24%" />
-<col width="17%" />
+<col width="13%" />
+<col width="7%" />
+<col width="20%" />
+<col width="21%" />
+<col width="21%" />
 </colgroup>
 <thead>
 <tr class="header">
 <th align="center">Start. node</th>
 <th align="center">End. node</th>
 <th align="center">Name</th>
-<th align="center">Opt. time</th>
-<th align="center">Most like. time</th>
-<th align="center">Pess. time</th>
+<th align="center">Optimistic dur.</th>
+<th align="center">Most likely dur.</th>
+<th align="center">Pessimistic dur.</th>
 </tr>
 </thead>
 <tbody>
@@ -1863,34 +1862,34 @@ activities),</li>
 <li>indication of directive terms for the risk-taker and the belayer
 schedules.</li>
 </ul>
-<p>Duration is a random variable, so we will change the
+<p>Duration in PERT is a random variable, so we will change the
 <em>deterministic</em> argument to <em>FALSE</em>.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">solve_pathAOA</span>(pertexample1, <span class="at">deterministic =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co">#&gt; Expected compl. time distribution: N( 31 , 1.490712 )</span></span></code></pre></div>
 <p>After solving the problem, a message appears giving the parameters of
-the normal distribution of a random variable describing the duration of
-the project.</p>
+the normal distribution of a random variable describing the project
+completion time.</p>
 <p>Below we display the elements of the list storing the solution. It
 contains one more element than the list created for the CPM method. The
 <em>Time</em> column contains the expected duration of the activity.</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># Schedule</span></span>
 <span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>y[<span class="dv">2</span>]</span>
 <span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt; $schedule</span></span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt;   Name Time       Var ESij LSij EFij LFij TSij Crit</span></span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; 1    A  5.0 0.4444444  0.0  0.0  5.0  5.0  0.0    *</span></span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt; 2    B  7.0 0.4444444  5.0  5.0 12.0 12.0  0.0    *</span></span>
-<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt; 3    C  5.5 0.2500000 12.0 14.0 17.5 19.5  2.0     </span></span>
-<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt; 4    D  5.5 1.3611111 12.0 13.5 17.5 19.0  1.5     </span></span>
-<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt; 5    E  8.0 0.4444444 12.0 12.0 20.0 20.0  0.0    *</span></span>
-<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt; 6    F  5.5 0.6944444 17.5 19.5 23.0 25.0  2.0     </span></span>
-<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt; 7    G  6.0 0.1111111 17.5 19.0 23.5 25.0  1.5     </span></span>
-<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt; 8    H  5.0 0.4444444 20.0 20.0 25.0 25.0  0.0    *</span></span>
-<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co">#&gt; 9    I  6.0 0.4444444 25.0 25.0 31.0 31.0  0.0    *</span></span>
-<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co"># Expected directive term</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt;   Name Duration       Var ESij LSij EFij LFij TFij Crit</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; 1    A      5.0 0.4444444  0.0  0.0  5.0  5.0  0.0    *</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt; 2    B      7.0 0.4444444  5.0  5.0 12.0 12.0  0.0    *</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt; 3    C      5.5 0.2500000 12.0 14.0 17.5 19.5  2.0     </span></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt; 4    D      5.5 1.3611111 12.0 13.5 17.5 19.0  1.5     </span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt; 5    E      8.0 0.4444444 12.0 12.0 20.0 20.0  0.0    *</span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt; 6    F      5.5 0.6944444 17.5 19.5 23.0 25.0  2.0     </span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt; 7    G      6.0 0.1111111 17.5 19.0 23.5 25.0  1.5     </span></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt; 8    H      5.0 0.4444444 20.0 20.0 25.0 25.0  0.0    *</span></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co">#&gt; 9    I      6.0 0.4444444 25.0 25.0 31.0 31.0  0.0    *</span></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co"># Expected completion time</span></span>
 <span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a>y[<span class="dv">3</span>]</span>
 <span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a><span class="co">#&gt; $ComplTi</span></span>
 <span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a><span class="co">#&gt; [1] 31</span></span>
-<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a><span class="co"># Standard deviation of the directive term</span></span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a><span class="co"># Standard deviation of the completion time</span></span>
 <span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a>y[<span class="dv">4</span>]</span>
 <span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a><span class="co">#&gt; $SDevTi</span></span>
 <span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a><span class="co">#&gt; [1] 1.490712</span></span>
@@ -1962,19 +1961,19 @@ the belayer, we will use the <em>PERT_newtime()</em> function.</p>
 <span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a><span class="co">#&gt; $newDT</span></span>
 <span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a><span class="co">#&gt; [1] 31.37767</span></span></code></pre></div>
 <p>The <em>PERT_newprob()</em> function answers to the question about
-the probability of completing the project for a given directive term.
-For example the probability that the project will end after 30 days</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="co"># </span></span>
-<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="fu">PERT_newprob</span>(<span class="at">new_DT =</span> <span class="dv">30</span>, y)</span>
-<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="co">#&gt; Prob. of completion:  0.2511675</span></span>
-<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="co">#&gt; $newDT</span></span>
-<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a><span class="co">#&gt; [1] 30</span></span>
-<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a><span class="co">#&gt; $prob_compl</span></span>
-<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a><span class="co">#&gt; [1] 0.2511675</span></span></code></pre></div>
+the probability of completing the project for a given directive
+deadline. For example the probability that the project will end after 30
+days</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">PERT_newprob</span>(<span class="at">new_DT =</span> <span class="dv">30</span>, y)</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="co">#&gt; Prob. of completion:  0.2511675</span></span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="co">#&gt; $newDT</span></span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="co">#&gt; [1] 30</span></span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a><span class="co">#&gt; $prob_compl</span></span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a><span class="co">#&gt; [1] 0.2511675</span></span></code></pre></div>
 <p>Besides, the <em>plot_norm()</em> function draws a plot of the normal
 distribution of a random variable describing the expected directive
-term.</p>
+deadline.</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">plot_norm</span>(y)</span></code></pre></div>
 <div class="figure" style="text-align: center">
 <img src="data:image/png;base64,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" alt="Fig. 10. Normal distribution for the pertexample1 dataset" />

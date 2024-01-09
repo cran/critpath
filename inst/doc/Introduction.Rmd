@@ -18,8 +18,8 @@ knitr::opts_chunk$set(
 
 There are two approaches in project management to present multifunctional projects on a graph:
 
-1. Activity on the Arc (AoA) notation, where each arrow (edge) means an activity. Nodes determine the start or end of one or more activities.
-2. Activity on the Node (AoN) notation, in which the node denotes an activity. Arrows represent the relationships between given activity and the activities immediately preceding and immediately following it.
+1. Activity on Arc (AoA) notation, where each arrow (edge) means an activity. Nodes determine the start or end of one or more activities.
+2. Activity on Node (AoN) notation, in which the node denotes an activity. Arrows represent the relationships between given activity and the activities immediately preceding and immediately following it.
 
 The current version of the package uses the AoA notation.
 
@@ -31,13 +31,13 @@ Let's take the AoA notation. The activity starts at node number $i$ and ends at 
 
 ![Starting and ending moments](zdarzeniaij.png){width=50%}
 
-$t_{i}^{0}$ - the earliest possible start time of the task $i$;
+$t_{i}^{0}$ - the earliest possible occurrence of the event $i$;
 
-$t_{i}^{1}$ - the latest possible start time of the task $i$;
+$t_{i}^{1}$ - the latest possible occurrence of the event $i$;
 
-$t_{j}^{0}$ - the earliest possible completion time of the task $j$;
+$t_{j}^{0}$ - the earliest possible occurrence of the event $j$;
 
-$t_{j}^{1}$ - the latest possible completion time of the task $j$.
+$t_{j}^{1}$ - the latest possible occurrence of the event $j$.
 
 The moment of completing the entire project is called the directive term. CPM analysis can be divided into the following stages:
 
@@ -53,40 +53,40 @@ The preparation of a project schedule consists in determining all possible start
 
 Let's denote:
 
-$ES_{ij}=t_{i}^{0}$ - the earliest possible start time of the activity $(i,j)$;
+$ES_{ij}=t_{i}^{0}$ - the earliest possible start time of activity $(i,j)$;
 
-$LF_{ij}=t_{i}^{1}$ - the latest permitted completion time for the activity $(i,j)$;
+$LF_{ij}=t_{i}^{1}$ - the latest possible end time of activity $(i,j)$;
 
-$LS_{ij}=LF_{ij}-t_{ij}$ - the latest permitted start time for the activity $(i,j)$;
+$LS_{ij}=LF_{ij}-t_{ij}$ - the latest possible start time of activity $(i,j)$;
 
-$EF_{ij}=ES_{ij}+t_{ij}$ - the earliest possible completion time of the activity $(i,j)$;
+$EF_{ij}=ES_{ij}+t_{ij}$ - the earliest possible end time of activity $(i,j)$;
 
-$TS_{ij}=LF_{ij}-ES_{ij}-t_{ij}$ - total slack of time (total float) for activity $(i,j)$. A reserve of time that can be used to perform a given activity without affecting the completion time of the project.
+$TF_{ij}=LF_{ij}-ES_{ij}-t_{ij}$ - total float for activity $(i,j)$. A reserve of time that can be used to perform a given activity without affecting the completion time of the project.
 
-$FS_{ij}=t_{j}^{0}-t_{i}^{0}-t_{ij}$ - free slack of time (free float) for activity $(i,j)$. Maximum amount of time by which an activity can be delayed without delaying the earliest possible start time of any following activity.
+$FF_{ij}=t_{j}^{0}-t_{i}^{0}-t_{ij}$ - free float for activity $(i,j)$. Maximum amount of time by which an activity can be delayed without delaying the earliest possible start time of any following activity.
 
-$CS_{ij}=t_{j}^{1}-t_{i}^{1}-t_{ij}$ - conditional slack of time for activity $(i,j)$. Maximum amount of time by which an activity can be delayed without delaying without affecting time slacks of activities preceding the activity (lying on the same path).
+$CF_{ij}=t_{j}^{1}-t_{i}^{1}-t_{ij}$ - conditional float for activity $(i,j)$. Maximum amount of time by which an activity can be delayed without delaying without affecting time slacks of activities preceding the activity (lying on the same path).
 
-We assume that the directive term (DT) equals to the earliest time of the final event $\left(DT=t_{n}^{0}\right)$ so the slacks for critical activities equal to zero. Extension of the duration of any critical activity by $\tau$ time units will postpone the completion time of the entire project by $\tau$ units.
+We assume that the directive deadline (DD) equals to the earliest time of the final event $\left(DD=t_{n}^{0}\right)$ so the slacks for critical activities equal to zero. Extension of the duration of any critical activity by $\tau$ time units will postpone the completion time of the entire project by $\tau$ units.
 
-If we assume that $DT>t_{n}^{0}$ then extension of the duration of any critical activity by $\tau$ time units will postpone the completion time of the entire project by $\tau-\left(DT-t_{n}^{0}\right)$ units for $\tau>\left(DT-t_{n}^{0}\right)$. Smaller delays do not affect the duration of the entire project.
+If we assume that $DD>t_{n}^{0}$ then extension of the duration of any critical activity by $\tau$ time units will postpone the completion time of the entire project by $\tau-\left(DD-t_{n}^{0}\right)$ units for $\tau>\left(DD-t_{n}^{0}\right)$. Smaller delays do not affect the duration of the entire project.
 
 ## The PERT method
 
 The abbreviation PERT stands for Program Evaluation and Review Technique. This method is based on the following assumptions:
 
-- Activity durations are assumed to have Beta distribution with expected values $E\left(t_{ij}\right)$ and standard deviations $D\left(t_{ij}\right)$.
+- Activity durations are assumed to have beta distribution with expected values $E\left(t_{ij}\right)$ and standard deviations $D\left(t_{ij}\right)$.
 - The following restrictions apply to the distribution of the activity duration,ie. on the density function $f\left(t_{ij}\right)$:
   * the duration of the activity is within the range $\left\langle t_{ij}^{a},t_{ij}^{b}\right\rangle$. We assume that the probability of the performance of the activity (\emph{i,j}) in less than $t_{ij}^{a}$ or longer than $t_{ij}^{b}$ units is zero;
-  * the parameters of the Beta function ensure that the probability distribution of the activity duration is a right-hand asymmetric.
+  * the parameters of the beta function ensure that the probability distribution of the activity duration is a right-hand asymmetric.
 
-Experts estimate the duration of individual activities. As a result, we get:
+Experts estimate the durations of individual activities. As a result, we get:
 
 - $t_{ij}^{a}$ \textendash{} optimistic duration of activity (\emph{i,j});
 - $t_{ij}^{b}$ \textendash{} pessimistic duration of activity (\emph{i,j});
-- $t_{ij}^{m}$ \textendash{} the most likely duration of the activity (\emph{i,j}).
+- $t_{ij}^{m}$ \textendash{} the most likely duration of activity (\emph{i,j}).
 
-The PERT time analysis begins with the introductory phase, which involves estimating the expected value and duration variance for each activity.
+The classical PERT time analysis begins with the introductory phase, which involves estimating the expected value of duration and duration variance for each activity.
 
 Expected duration of the activity (\emph{i,j}):
 \[
@@ -97,16 +97,18 @@ m_{ij}=\frac{t_{ij}^{a}+4t_{ij}^{m}+t_{ij}^{b}}{6}
 s_{ij}^{2}=\left(\frac{t_{ij}^{b}-t_{ij}^{a}}{6}\right)^{2}
 \]
 
-The calculations in the stochastic problem are analogous to the deterministic (CPM) except that we now use the expected durations instead of the fixed durations.
+However, the critpath package also offers other methods for estimating expected value and variance. For more information, see the help to the *solve_pathAOA()* function.
+
+The calculations in the stochastic problem are analogous to the deterministic (CPM) except that we now use the expected durations instead of the fixed ones.
 
 The classical PERT approach uses the central limit theorem. This theorem states that the sum (difference) of a large number of independent random variables with the same distribution has an asymptotically normal distribution.
 
-The chance of meeting the expected directive term (\emph{DT}) equal to the earliest time of occurence for the last activity ($t_{n}^{0}$) is 50%.
+The chance of meeting the expected directive deadline (\emph{DD}) equal to the earliest time of occurence for the last activity ($t_{n}^{0}$) is 50%.
 
-In the PERT method, it is assumed that the \emph{DT} should be selected in such a way that its probability would be between 30% and 60%: 
+In the PERT method, it is assumed that the \emph{DD} should be selected in such a way that its probability would be between 30% and 60%: 
 
 \[
-0{,}3 \leqslant P\left(t_{n}<DT\right)\leqslant 0{,}6
+0{,}3 \leqslant P\left(t_{n}<DD\right)\leqslant 0{,}6
 \]
 
 A schedule with less than 30% chance of realization is called the risk taker's schedule, and the one with more than 60% chance is called the belayer's schedule.
@@ -143,7 +145,7 @@ plot_graphAOA(cpmexample1)
 plot_graphAOA(cpmexample1)
 ```
 
-The first method of loading an AOA project, i.e. with the indication of the start and end node, has been described above. Now we're going to use the list of predecessors. Let's look at the next table. This example comes from a book (Miszczyńska D., Miszczyński M. 2000) unfortunately available only in Polish.
+That was the first method of loading an AOA project. Now we're going to use the list of predecessors. Let's look at the next table. This example comes from a book (Miszczyńska D., Miszczyński M. 2000) unfortunately available only in Polish.
 
 ```{r, echo = FALSE}
 label <- c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J")
@@ -155,7 +157,7 @@ knitr::kable(cbind(label, pred, time), col.names = c("Name",
              align = "ccc", caption = "Tab. 2. Data loaded from the list of activity predecessors")
 ```
 
-A very important difference is the appearance of the NA symbol, which in this case means the lack of a immediately preceding activity. Activities A and B are not preceded by other activities, so this is where the whole project starts. If the action has several predecessors, their names should be separated by commas. Moreover, this example contains one dummy activity because C and D have the same start and end nodes. This dataset is available in the *critpath* package as *cpmexample2*.
+A very important difference is the appearance of the NA symbol, which in this case means lack of a immediately preceding activity. Activities A and B are not preceded by other activities, so the whole project starts from them. If the activity has several predecessors, their names should be separated by commas. Moreover, this example contains one dummy activity because C and D have the same start and end nodes. This dataset is available in the *critpath* package as *cpmexample2*.
 
 ```{r, echo = FALSE, include = FALSE}
 library(critpath)
@@ -166,8 +168,8 @@ plot_graphAOA(cpmexample2, predecessors = TRUE)
 plot_graphAOA(cpmexample2, predecessors = TRUE)
 ```
 
-Dummy activities are marked with a dashed line. The examples above assumed a deterministic duration of the activity, but for duration as a random variable, the graph structure should also be given in one of the ways listed.
+Dummy activities are marked with a dashed line. The examples above assumed a deterministic durations of activities, but for durations as a random variables, the graph structure should also be given in one of the ways listed.
 
-The list of activities immediately preceding must be transformed into a set of pairs of start and end nodes. This is the only way to create a graph in the *DiagrammeR* package. We used an algorithm by Cohen and Sadeh. This algorithm not only creates a from-to list for activities, but also allows dummy activities to be added to the graph. However, it has a disadvantage. After adding dummies, it is very likely that for some activities the start node number will be higher than the end node number. This can lead the *critpath* package to incorrect results, e.g. incorrect project completion date. Therefore, a function has been added that renumbers the nodes of the Cohen and Sadeh algorithm so that the starting node has a lower number than the end one.
+The list of immediately preceding activities must be transformed into a set of pairs of start and end nodes. This is the only way to create a graph in the *DiagrammeR* package. We used an algorithm by Cohen and Sadeh. This algorithm not only creates a from-to list for activities, but also allows dummy activities to be added to the graph. However, it has a disadvantage. After adding dummies, it is very likely that for some activities the start node number will be higher than the end node number. This can lead the *critpath* package to incorrect results, e.g. incorrect project completion date. Therefore, a function has been added that renumbers the nodes so that the starting node has a lower number than the end one.
 
-Graphs are drawn by the *render_graph()* function from the *DiagrammeR* package using the Fruchterman-Reingold algorithm. It is to guarantee, among others not intersecting the edges, but this is not always possible. Besides, subsequent runs of this function for the same problem can produce (and often do) a graph that is placed on the plane in a slightly different way each time.
+Graphs are drawn by the *render_graph()* function from the *DiagrammeR* package using the Fruchterman-Reingold algorithm. It is to guarantee, among others not intersecting the edges, but this is not always possible. Besides, subsequent runs of this function for the same problem can produce (and often do) a graph that is placed on the plane in a slightly different way each time. However, this can be controlled using the *seed* parameter. 

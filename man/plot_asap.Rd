@@ -15,7 +15,7 @@ plot_asap(yourlist, show_dummy = FALSE, bar_size = 10)
 }
 \value{
 Draws an ASAP (activities start and finish As Soon As Possible) chart broken down into critical ("CR") and non-critical ("NC") activities.
-  Marks the slack of time.
+  Marks total floats.
 }
 \description{
 An ASAP chart

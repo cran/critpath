@@ -1,7 +1,7 @@
 #===============================================================================
 # Function that reads data in the DiagrammeR package format.
 # Changing labels to character mode to display them on the graph.
-# Data frame for the CPM method. TS stands for slack of time.
+# Data frame for the CPM method. TF stands for total float.
 
 read_cpmAOA <- function(yourdata){
   # Check if the DiagrammeR package is loaded. If not, load it.
@@ -10,12 +10,12 @@ read_cpmAOA <- function(yourdata){
   stopifnot("The data frame for CPM has the wrong number of columns" = ncol(yourdata) == 4)
 
   create_edge_df(from = yourdata[,1], to = yourdata[,2], label = yourdata[,3],
-                   time = yourdata[,4], TS = rep(0, nrow(yourdata)))
+                   time = yourdata[,4], TF = rep(0, nrow(yourdata)))
 }
 #===============================================================================
 # Function reads data in the DiagrammeR package format.
 # Change labels to character mode to display them on the graph.
-# Data frame for the PERT method. TS stands for slack of time.
+# Data frame for the PERT method. TF stands for total float.
 
 read_pertAOA <- function(yourdata, pert_param){
   # Check if the DiagrammeR package is loaded. If not, load it.
@@ -27,7 +27,7 @@ read_pertAOA <- function(yourdata, pert_param){
                    label = as.character(yourdata[,3]),
                    time = PERT_mu(pert_param, yourdata[,4], yourdata[,5], yourdata[,6]),
                    timevar = PERT_var(pert_param, yourdata[,4], yourdata[,5], yourdata[,6]),
-                   TS = rep(0, nrow(yourdata)),)
+                   TF = rep(0, nrow(yourdata)),)
 }
 #===============================================================================
 # Creates relations from an input data frame.
@@ -78,24 +78,24 @@ create_empty_schedule <- function(relations, deterministic){
   if (deterministic == TRUE){
     data.frame(
       Name = relations$label,
-      Time = relations$time,
+      Duration = relations$time,
       ESij = rep(0, nrow(relations)),
       LSij = rep(0, nrow(relations)),
       EFij = rep(0, nrow(relations)),
       LFij = rep(0, nrow(relations)),
-      TSij = rep(0, nrow(relations)),
+      TFij = rep(0, nrow(relations)),
       Crit = rep(c(" "), nrow(relations))
     )
   }else{
     data.frame(
       Name = relations$label,
-      Time = relations$time,
+      Duration = relations$time,
       Var = relations$timevar,
       ESij = rep(0, nrow(relations)),
       LSij = rep(0, nrow(relations)),
       EFij = rep(0, nrow(relations)),
       LFij = rep(0, nrow(relations)),
-      TSij = rep(0, nrow(relations)),
+      TFij = rep(0, nrow(relations)),
       Crit = rep(c(" "), nrow(relations))
     )
   }
@@ -105,7 +105,7 @@ create_empty_schedule <- function(relations, deterministic){
 # Prepares and fills a data frame that stores the schedule of the CPM method.
 
 scheduleAOA <- function(relations, deterministic){
-  ES <- LF <- TS <- NULL
+  ES <- LF <- TF <- NULL
   # Create a data frame to hold the vertices.
   vertices <- make_nodesAOA(relations)
 
@@ -157,13 +157,13 @@ scheduleAOA <- function(relations, deterministic){
                                                     nodes = c(relations$to[i]))
   }
   # Completes the rest of the schedule.
-  yourschedule$LSij <- yourschedule$LFij - yourschedule$Time
-  yourschedule$EFij <- yourschedule$ESij + yourschedule$Time
-  yourschedule$TSij <- yourschedule$LFij - yourschedule$ESij - yourschedule$Time
-  yourschedule$Crit[which(yourschedule$TSij == 0)] <- c("*")
+  yourschedule$LSij <- yourschedule$LFij - yourschedule$Duration
+  yourschedule$EFij <- yourschedule$ESij + yourschedule$Duration
+  yourschedule$TFij <- yourschedule$LFij - yourschedule$ESij - yourschedule$Duration
+  yourschedule$Crit[which(yourschedule$TFij == 0)] <- c("*")
 
-  # Completes TS for the edges data frame.
-  yourgraph <- set_edge_attrs(yourgraph, edge_attr = TS, values = yourschedule$TSij)
+  # Completes TF for the edges data frame.
+  yourgraph <- set_edge_attrs(yourgraph, edge_attr = TF, values = yourschedule$TFij)
 
   # Extract values of the ES attributes for all nodes
   ESnodes <- get_node_attrs(yourgraph, node_attr = ES)
@@ -174,8 +174,8 @@ scheduleAOA <- function(relations, deterministic){
   # Calculate spare/free and conditional slack of time
   AddInfo <- data.frame(
     Name = relations$label,
-    FST = ESnodes[relations$to] - ESnodes[relations$from] - yourschedule$Time,
-    CST = LFnodes[relations$to] - LFnodes[relations$from] - yourschedule$Time
+    FST = ESnodes[relations$to] - ESnodes[relations$from] - yourschedule$Duration,
+    CST = LFnodes[relations$to] - LFnodes[relations$from] - yourschedule$Duration
   )
 
   # Messages after the computation is completed.
@@ -184,7 +184,7 @@ scheduleAOA <- function(relations, deterministic){
     cat("Completion time: ", max(yourschedule$LFij), "\n")
   }else{
     # PERT
-    cat("Expected compl. time distribution: N(",max(yourschedule$LFij),",", sqrt(sum(yourschedule$Var[which(yourschedule$TSij == 0)])),")\n")
+    cat("Expected compl. time distribution: N(",max(yourschedule$LFij),",", sqrt(sum(yourschedule$Var[which(yourschedule$TFij == 0)])),")\n")
   }
 
   # Creates a list keeping the graph and schedule.
@@ -192,15 +192,15 @@ scheduleAOA <- function(relations, deterministic){
     # CPM.
     list(graphAOA = yourgraph, schedule = yourschedule,
       ComplTi = max(yourschedule$LFij),
-      CritAct = yourschedule$Name[which(yourschedule$TSij == 0)],
+      CritAct = yourschedule$Name[which(yourschedule$TFij == 0)],
       AddSlacks = AddInfo
       )
   }else{
     # PERT.
     list(graphAOA = yourgraph, schedule = yourschedule,
       ComplTi = max(yourschedule$LFij),
-      SDevTi = sqrt(sum(yourschedule$Var[which(yourschedule$TSij == 0)])),
-      CritAct = yourschedule$Name[which(yourschedule$TSij == 0)],
+      SDevTi = sqrt(sum(yourschedule$Var[which(yourschedule$TFij == 0)])),
+      CritAct = yourschedule$Name[which(yourschedule$TFij == 0)],
       AddSlacks = AddInfo)
   }
 }
@@ -227,13 +227,13 @@ pckg_check <- function(pckg_name){
 #'   \item \code{from} The number of the node where the activity starts.
 #'   \item \code{to} The number of the node where the activity ends.
 #'   \item \code{label} Activity labels.
-#'   \item \code{time} Activities duration.
+#'   \item \code{time} Activities durations.
 #'   }
 #'   For the CPM method and predecessors list you need 3 columns (the order is important, not the name of the column):
 #'   \enumerate{
 #'   \item \code{label} Activity labels.
 #'   \item \code{pred} List of predecessors.
-#'   \item \code{time} Activities duration.
+#'   \item \code{time} Activities durations.
 #'   }
 #'   For the PERT method and start/end nodes you need 6 columns (the order is important, not the name of the column):
 #'   \enumerate{
@@ -286,7 +286,7 @@ solve_pathAOA <- function(input_data, deterministic = TRUE, predecessors = FALSE
 # Presentation of the critical path on a graph.
 
 plot_crit_pathAOA <- function(yourlist, fixed_seed = 23){
-  TS <- color <- time <- style <- NULL
+  TF <- color <- time <- style <- NULL
   # Check if DiagrammeR package is loaded. If not, load it.
   pckg_check("DiagrammeR")
 
@@ -306,7 +306,7 @@ plot_crit_pathAOA <- function(yourlist, fixed_seed = 23){
   # Color marking of critical activities.
   yourgraph <- yourgraph %>%
     clear_selection() %>%
-    select_edges(conditions = TS == 0) %>%
+    select_edges(conditions = TF == 0) %>%
     set_edge_attrs_ws(edge_attr = color, value = "red")
   # Set random seed to fixed value
   suppressWarnings(RNGversion("3.5.0"))
@@ -323,7 +323,7 @@ plot_crit_pathAOA <- function(yourlist, fixed_seed = 23){
 #' @param show_dummy Decides whether dummy activities should be included in the chart. If so, set it to TRUE (set to FALSE by default).
 #' @param bar_size Thickness of the bar drawn for activity (set to 10 by default).
 #' @return Draws a Gantt chart broken down into critical ("CR") and non-critical ("NC") activities.
-#'   Marks the slack of time.
+#'   Marks total floats.
 #' @examples
 #' x <- solve_pathAOA(cpmexample1, deterministic = TRUE)
 #' plot_gantt(x)
@@ -331,7 +331,7 @@ plot_crit_pathAOA <- function(yourlist, fixed_seed = 23){
 #' @import reshape2
 #' @export
 plot_gantt <- function(yourlist, show_dummy = FALSE, bar_size = 10){
-  Name <- TSij <- value <- NULL
+  Name <- TFij <- value <- NULL
   # Check if ggplot2 package is loaded. If not, load it.
   pckg_check("ggplot2")
 
@@ -342,7 +342,7 @@ plot_gantt <- function(yourlist, show_dummy = FALSE, bar_size = 10){
   stopifnot("The function requires a list" = is.list(yourlist))
 
   # Identify dummy activities
-  dummy_rows <- which(yourlist[[2]]$Time == 0)
+  dummy_rows <- which(yourlist[[2]]$Duration == 0)
 
   if (length(dummy_rows) == 0){
     schedule <- yourlist[[2]]
@@ -352,18 +352,18 @@ plot_gantt <- function(yourlist, show_dummy = FALSE, bar_size = 10){
     schedule <- yourlist[[2]][-dummy_rows,]
   }
 
-  # Sorting the schedule according to slack of time.
-  dftmp <- schedule[order(schedule$TSij),]
+  # Sorting the schedule according to total float.
+  dftmp <- schedule[order(schedule$TFij),]
 
-  # The TSij column gives the critical activities the symbol "CR" and the non-critical activities "NC".
-  dftmp$TSij[dftmp$TSij > 0] <- c("NC")
-  dftmp$TSij[dftmp$TSij == 0] <- c("CR")
+  # The TFij column gives the critical activities the symbol "CR" and the non-critical activities "NC".
+  dftmp$TFij[dftmp$TFij > 0] <- c("NC")
+  dftmp$TFij[dftmp$TFij == 0] <- c("CR")
 
   # Gantt chart
   melthar <- melt(dftmp, measure.vars = c("ESij", "EFij"))
   melthar2 <- melt(dftmp, measure.vars = c("EFij", "LFij"))
 
-  ggplot(melthar, aes(value, Name, colour = TSij)) +
+  ggplot(melthar, aes(value, Name, colour = TFij)) +
     geom_line(size = bar_size) +
     ylab(NULL) +
     xlab(NULL) +
@@ -371,7 +371,7 @@ plot_gantt <- function(yourlist, show_dummy = FALSE, bar_size = 10){
     theme(legend.title=element_blank())
 
   ggplot() +
-    geom_line(melthar, mapping = aes(value, Name, colour = TSij), size = bar_size) +
+    geom_line(melthar, mapping = aes(value, Name, colour = TFij), size = bar_size) +
     geom_line(melthar2, mapping = aes(value, Name), colour ="cyan", size = bar_size) +
     ylab(NULL) +
     xlab(NULL) +
@@ -458,7 +458,7 @@ plot_dataAOA <- function(input_data, predecessors, fixed_seed){
 #' @param show_dummy Decides whether dummy activities should be included in the chart. If so, set it to TRUE (set to FALSE by default).
 #' @param bar_size Thickness of the bar drawn for activity (set to 10 by default).
 #' @return Draws an ASAP (activities start and finish As Soon As Possible) chart broken down into critical ("CR") and non-critical ("NC") activities.
-#'   Marks the slack of time.
+#'   Marks total floats.
 #' @examples
 #' x <- solve_pathAOA(cpmexample1, deterministic = TRUE)
 #' plot_asap(x)
@@ -466,7 +466,7 @@ plot_dataAOA <- function(input_data, predecessors, fixed_seed){
 #' @import reshape2
 #' @export
 plot_asap <- function(yourlist, show_dummy = FALSE, bar_size = 10){
-  Name <- FST <- TSij <- value <- NULL
+  Name <- FST <- TFij <- value <- NULL
   # Check if ggplot2 package is loaded. If not, load it.
   pckg_check("ggplot2")
 
@@ -477,7 +477,7 @@ plot_asap <- function(yourlist, show_dummy = FALSE, bar_size = 10){
   stopifnot("The function requires a list" = is.list(yourlist))
 
   # Identify dummy activities
-  dummy_rows <- which(yourlist[[2]]$Time == 0)
+  dummy_rows <- which(yourlist[[2]]$Duration == 0)
 
   if (length(dummy_rows) == 0){
     schedule <- yourlist[[2]]
@@ -493,18 +493,18 @@ plot_asap <- function(yourlist, show_dummy = FALSE, bar_size = 10){
   # Create temporary schedule with additional column
   schedule <- data.frame(schedule, ResTimeij = schedule$EFij + addslacks$FST)
 
-  # Sorting the schedule according to slack of time.
-  dftmp <- schedule[order(schedule$TSij),]
+  # Sorting the schedule according to total float.
+  dftmp <- schedule[order(schedule$TFij),]
 
-  # The TSij column gives the critical activities the symbol "CR" and the non-critical activities "NC".
-  dftmp$TSij[dftmp$TSij > 0] <- c("NC")
-  dftmp$TSij[dftmp$TSij == 0] <- c("CR")
+  # The TFij column gives the critical activities the symbol "CR" and the non-critical activities "NC".
+  dftmp$TFij[dftmp$TFij > 0] <- c("NC")
+  dftmp$TFij[dftmp$TFij == 0] <- c("CR")
 
   # Gantt chart as ASAP
   melthar <- melt(dftmp, measure.vars = c("ESij", "EFij"))
   melthar2 <- melt(dftmp, measure.vars = c("EFij", "ResTimeij"))
 
-  ggplot(melthar, aes(value, Name, colour = TSij)) +
+  ggplot(melthar, aes(value, Name, colour = TFij)) +
     geom_line(size = bar_size) +
     ylab(NULL) +
     xlab(NULL) +
@@ -512,7 +512,7 @@ plot_asap <- function(yourlist, show_dummy = FALSE, bar_size = 10){
     theme(legend.title=element_blank())
 
   ggplot() +
-    geom_line(melthar, mapping = aes(value, Name, colour = TSij), size = bar_size) +
+    geom_line(melthar, mapping = aes(value, Name, colour = TFij), size = bar_size) +
     geom_line(melthar2, mapping = aes(value, Name), colour ="cyan", size = bar_size) +
     ylab(NULL) +
     xlab(NULL) +
@@ -531,7 +531,7 @@ plot_asap <- function(yourlist, show_dummy = FALSE, bar_size = 10){
 #' @param show_dummy Decides whether dummy activities should be included in the chart. If so, set it to TRUE (set to FALSE by default).
 #' @param bar_size Thickness of the bar drawn for activity (set to 10 by default).
 #' @return Draws an ALAP (activities start and finish As Late As Possible) chart broken down into critical ("CR") and non-critical ("NC") activities.
-#'   Marks the slack of time.
+#'   Marks total float.
 #' @examples
 #' x <- solve_pathAOA(cpmexample1, deterministic = TRUE)
 #' plot_alap(x)
@@ -539,7 +539,7 @@ plot_asap <- function(yourlist, show_dummy = FALSE, bar_size = 10){
 #' @import reshape2
 #' @export
 plot_alap <- function(yourlist, show_dummy = FALSE, bar_size = 10){
-  Name <- CST <- TSij <- value <- NULL
+  Name <- CST <- TFij <- value <- NULL
   # Check if ggplot2 package is loaded. If not, load it.
   pckg_check("ggplot2")
 
@@ -550,7 +550,7 @@ plot_alap <- function(yourlist, show_dummy = FALSE, bar_size = 10){
   stopifnot("The function requires a list" = is.list(yourlist))
 
   # Identify dummy activities
-  dummy_rows <- which(yourlist[[2]]$Time == 0)
+  dummy_rows <- which(yourlist[[2]]$Duration == 0)
 
   if (length(dummy_rows) == 0){
     schedule <- yourlist[[2]]
@@ -566,18 +566,18 @@ plot_alap <- function(yourlist, show_dummy = FALSE, bar_size = 10){
   # Create temporary schedule with additional column
   schedule <- data.frame(schedule, ResTimeij = schedule$LSij - addslacks$CST)
 
-  # Sorting the schedule according to slack of time.
-  dftmp <- schedule[order(schedule$TSij),]
+  # Sorting the schedule according to total float.
+  dftmp <- schedule[order(schedule$TFij),]
 
-  # The TSij column gives the critical activities the symbol "CR" and the non-critical activities "NC".
-  dftmp$TSij[dftmp$TSij > 0] <- c("NC")
-  dftmp$TSij[dftmp$TSij == 0] <- c("CR")
+  # The TFij column gives the critical activities the symbol "CR" and the non-critical activities "NC".
+  dftmp$TFij[dftmp$TFij > 0] <- c("NC")
+  dftmp$TFij[dftmp$TFij == 0] <- c("CR")
 
   # Gantt chart as ASAP
   melthar <- melt(dftmp, measure.vars = c("LFij", "LSij"))
   melthar2 <- melt(dftmp, measure.vars = c("ResTimeij", "LSij"))
 
-  ggplot(melthar, aes(value, Name, colour = TSij)) +
+  ggplot(melthar, aes(value, Name, colour = TFij)) +
     geom_line(size = bar_size) +
     ylab(NULL) +
     xlab(NULL) +
@@ -585,7 +585,7 @@ plot_alap <- function(yourlist, show_dummy = FALSE, bar_size = 10){
     theme(legend.title=element_blank())
 
   ggplot() +
-    geom_line(melthar, mapping = aes(value, Name, colour = TSij), size = bar_size) +
+    geom_line(melthar, mapping = aes(value, Name, colour = TFij), size = bar_size) +
     geom_line(melthar2, mapping = aes(value, Name), colour ="cyan", size = bar_size) +
     ylab(NULL) +
     xlab(NULL) +

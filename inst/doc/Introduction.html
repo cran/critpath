@@ -12,7 +12,7 @@
 
 <meta name="author" content="Adam Kucharski" />
 
-<meta name="date" content="2023-06-06" />
+<meta name="date" content="2024-01-06" />
 
 <title>Introduction and data loading</title>
 
@@ -1554,17 +1554,17 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Introduction and data loading</h1>
 <h4 class="author">Adam Kucharski</h4>
-<h4 class="date">2023-06-06</h4>
+<h4 class="date">2024-01-06</h4>
 
 
 
 <p>There are two approaches in project management to present
 multifunctional projects on a graph:</p>
 <ol style="list-style-type: decimal">
-<li>Activity on the Arc (AoA) notation, where each arrow (edge) means an
+<li>Activity on Arc (AoA) notation, where each arrow (edge) means an
 activity. Nodes determine the start or end of one or more
 activities.</li>
-<li>Activity on the Node (AoN) notation, in which the node denotes an
+<li>Activity on Node (AoN) notation, in which the node denotes an
 activity. Arrows represent the relationships between given activity and
 the activities immediately preceding and immediately following it.</li>
 </ol>
@@ -1582,13 +1582,13 @@ project. Besides, activities will vary in duration.</p>
 <div class="figcaption">Starting and ending moments</div>
 </div>
 <p><span class="math inline">\(t_{i}^{0}\)</span> - the earliest
-possible start time of the task <span class="math inline">\(i\)</span>;</p>
+possible occurrence of the event <span class="math inline">\(i\)</span>;</p>
 <p><span class="math inline">\(t_{i}^{1}\)</span> - the latest possible
-start time of the task <span class="math inline">\(i\)</span>;</p>
+occurrence of the event <span class="math inline">\(i\)</span>;</p>
 <p><span class="math inline">\(t_{j}^{0}\)</span> - the earliest
-possible completion time of the task <span class="math inline">\(j\)</span>;</p>
+possible occurrence of the event <span class="math inline">\(j\)</span>;</p>
 <p><span class="math inline">\(t_{j}^{1}\)</span> - the latest possible
-completion time of the task <span class="math inline">\(j\)</span>.</p>
+occurrence of the event <span class="math inline">\(j\)</span>.</p>
 <p>The moment of completing the entire project is called the directive
 term. CPM analysis can be divided into the following stages:</p>
 <ol style="list-style-type: decimal">
@@ -1607,34 +1607,34 @@ this time, the activity can be delayed without delaying the completion
 of the entire project.</p>
 <p>Let’s denote:</p>
 <p><span class="math inline">\(ES_{ij}=t_{i}^{0}\)</span> - the earliest
-possible start time of the activity <span class="math inline">\((i,j)\)</span>;</p>
+possible start time of activity <span class="math inline">\((i,j)\)</span>;</p>
 <p><span class="math inline">\(LF_{ij}=t_{i}^{1}\)</span> - the latest
-permitted completion time for the activity <span class="math inline">\((i,j)\)</span>;</p>
+possible end time of activity <span class="math inline">\((i,j)\)</span>;</p>
 <p><span class="math inline">\(LS_{ij}=LF_{ij}-t_{ij}\)</span> - the
-latest permitted start time for the activity <span class="math inline">\((i,j)\)</span>;</p>
+latest possible start time of activity <span class="math inline">\((i,j)\)</span>;</p>
 <p><span class="math inline">\(EF_{ij}=ES_{ij}+t_{ij}\)</span> - the
-earliest possible completion time of the activity <span class="math inline">\((i,j)\)</span>;</p>
-<p><span class="math inline">\(TS_{ij}=LF_{ij}-ES_{ij}-t_{ij}\)</span> -
-total slack of time (total float) for activity <span class="math inline">\((i,j)\)</span>. A reserve of time that can be used
-to perform a given activity without affecting the completion time of the
-project.</p>
-<p><span class="math inline">\(FS_{ij}=t_{j}^{0}-t_{i}^{0}-t_{ij}\)</span> - free
-slack of time (free float) for activity <span class="math inline">\((i,j)\)</span>. Maximum amount of time by which an
-activity can be delayed without delaying the earliest possible start
-time of any following activity.</p>
-<p><span class="math inline">\(CS_{ij}=t_{j}^{1}-t_{i}^{1}-t_{ij}\)</span> -
-conditional slack of time for activity <span class="math inline">\((i,j)\)</span>. Maximum amount of time by which an
+earliest possible end time of activity <span class="math inline">\((i,j)\)</span>;</p>
+<p><span class="math inline">\(TF_{ij}=LF_{ij}-ES_{ij}-t_{ij}\)</span> -
+total float for activity <span class="math inline">\((i,j)\)</span>. A
+reserve of time that can be used to perform a given activity without
+affecting the completion time of the project.</p>
+<p><span class="math inline">\(FF_{ij}=t_{j}^{0}-t_{i}^{0}-t_{ij}\)</span> - free
+float for activity <span class="math inline">\((i,j)\)</span>. Maximum
+amount of time by which an activity can be delayed without delaying the
+earliest possible start time of any following activity.</p>
+<p><span class="math inline">\(CF_{ij}=t_{j}^{1}-t_{i}^{1}-t_{ij}\)</span> -
+conditional float for activity <span class="math inline">\((i,j)\)</span>. Maximum amount of time by which an
 activity can be delayed without delaying without affecting time slacks
 of activities preceding the activity (lying on the same path).</p>
-<p>We assume that the directive term (DT) equals to the earliest time of
-the final event <span class="math inline">\(\left(DT=t_{n}^{0}\right)\)</span> so the slacks
+<p>We assume that the directive deadline (DD) equals to the earliest
+time of the final event <span class="math inline">\(\left(DD=t_{n}^{0}\right)\)</span> so the slacks
 for critical activities equal to zero. Extension of the duration of any
 critical activity by <span class="math inline">\(\tau\)</span> time
 units will postpone the completion time of the entire project by <span class="math inline">\(\tau\)</span> units.</p>
-<p>If we assume that <span class="math inline">\(DT&gt;t_{n}^{0}\)</span> then extension of the
+<p>If we assume that <span class="math inline">\(DD&gt;t_{n}^{0}\)</span> then extension of the
 duration of any critical activity by <span class="math inline">\(\tau\)</span> time units will postpone the
-completion time of the entire project by <span class="math inline">\(\tau-\left(DT-t_{n}^{0}\right)\)</span> units for
-<span class="math inline">\(\tau&gt;\left(DT-t_{n}^{0}\right)\)</span>.
+completion time of the entire project by <span class="math inline">\(\tau-\left(DD-t_{n}^{0}\right)\)</span> units for
+<span class="math inline">\(\tau&gt;\left(DD-t_{n}^{0}\right)\)</span>.
 Smaller delays do not affect the duration of the entire project.</p>
 </div>
 <div id="the-pert-method" class="section level2">
@@ -1642,7 +1642,7 @@ Smaller delays do not affect the duration of the entire project.</p>
 <p>The abbreviation PERT stands for Program Evaluation and Review
 Technique. This method is based on the following assumptions:</p>
 <ul>
-<li>Activity durations are assumed to have Beta distribution with
+<li>Activity durations are assumed to have beta distribution with
 expected values <span class="math inline">\(E\left(t_{ij}\right)\)</span> and standard
 deviations <span class="math inline">\(D\left(t_{ij}\right)\)</span>.</li>
 <li>The following restrictions apply to the distribution of the activity
@@ -1651,11 +1651,11 @@ duration,ie. on the density function <span class="math inline">\(f\left(t_{ij}\r
 <li>the duration of the activity is within the range <span class="math inline">\(\left\langle
 t_{ij}^{a},t_{ij}^{b}\right\rangle\)</span>. We assume that the
 probability of the performance of the activity () in less than <span class="math inline">\(t_{ij}^{a}\)</span> or longer than <span class="math inline">\(t_{ij}^{b}\)</span> units is zero;</li>
-<li>the parameters of the Beta function ensure that the probability
+<li>the parameters of the beta function ensure that the probability
 distribution of the activity duration is a right-hand asymmetric.</li>
 </ul></li>
 </ul>
-<p>Experts estimate the duration of individual activities. As a result,
+<p>Experts estimate the durations of individual activities. As a result,
 we get:</p>
 <ul>
 <li><span class="math inline">\(t_{ij}^{a}\)</span> optimistic duration
@@ -1663,29 +1663,32 @@ of activity ();</li>
 <li><span class="math inline">\(t_{ij}^{b}\)</span> pessimistic duration
 of activity ();</li>
 <li><span class="math inline">\(t_{ij}^{m}\)</span> the most likely
-duration of the activity ().</li>
+duration of activity ().</li>
 </ul>
-<p>The PERT time analysis begins with the introductory phase, which
-involves estimating the expected value and duration variance for each
-activity.</p>
+<p>The classical PERT time analysis begins with the introductory phase,
+which involves estimating the expected value of duration and duration
+variance for each activity.</p>
 <p>Expected duration of the activity (): <span class="math display">\[
 m_{ij}=\frac{t_{ij}^{a}+4t_{ij}^{m}+t_{ij}^{b}}{6}
 \]</span> Variance of activity () duration : <span class="math display">\[
 s_{ij}^{2}=\left(\frac{t_{ij}^{b}-t_{ij}^{a}}{6}\right)^{2}
 \]</span></p>
+<p>However, the critpath package also offers other methods for
+estimating expected value and variance. For more information, see the
+help to the <em>solve_pathAOA()</em> function.</p>
 <p>The calculations in the stochastic problem are analogous to the
 deterministic (CPM) except that we now use the expected durations
-instead of the fixed durations.</p>
+instead of the fixed ones.</p>
 <p>The classical PERT approach uses the central limit theorem. This
 theorem states that the sum (difference) of a large number of
 independent random variables with the same distribution has an
 asymptotically normal distribution.</p>
-<p>The chance of meeting the expected directive term () equal to the
+<p>The chance of meeting the expected directive deadline () equal to the
 earliest time of occurence for the last activity (<span class="math inline">\(t_{n}^{0}\)</span>) is 50%.</p>
 <p>In the PERT method, it is assumed that the should be selected in such
 a way that its probability would be between 30% and 60%:</p>
 <p><span class="math display">\[
-0{,}3 \leqslant P\left(t_{n}&lt;DT\right)\leqslant 0{,}6
+0{,}3 \leqslant P\left(t_{n}&lt;DD\right)\leqslant 0{,}6
 \]</span></p>
 <p>A schedule with less than 30% chance of realization is called the
 risk taker’s schedule, and the one with more than 60% chance is called
@@ -1781,11 +1784,10 @@ must keep this structure.</p>
 Fig. 1. Graph for the cpmexample1 dataset
 </p>
 </div>
-<p>The first method of loading an AOA project, i.e. with the indication
-of the start and end node, has been described above. Now we’re going to
-use the list of predecessors. Let’s look at the next table. This example
-comes from a book (Miszczyńska D., Miszczyński M. 2000) unfortunately
-available only in Polish.</p>
+<p>That was the first method of loading an AOA project. Now we’re going
+to use the list of predecessors. Let’s look at the next table. This
+example comes from a book (Miszczyńska D., Miszczyński M. 2000)
+unfortunately available only in Polish.</p>
 <table>
 <caption>Tab. 2. Data loaded from the list of activity
 predecessors</caption>
@@ -1850,12 +1852,12 @@ predecessors</caption>
 </tbody>
 </table>
 <p>A very important difference is the appearance of the NA symbol, which
-in this case means the lack of a immediately preceding activity.
-Activities A and B are not preceded by other activities, so this is
-where the whole project starts. If the action has several predecessors,
-their names should be separated by commas. Moreover, this example
-contains one dummy activity because C and D have the same start and end
-nodes. This dataset is available in the <em>critpath</em> package as
+in this case means lack of a immediately preceding activity. Activities
+A and B are not preceded by other activities, so the whole project
+starts from them. If the activity has several predecessors, their names
+should be separated by commas. Moreover, this example contains one dummy
+activity because C and D have the same start and end nodes. This dataset
+is available in the <em>critpath</em> package as
 <em>cpmexample2</em>.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">plot_graphAOA</span>(cpmexample2, <span class="at">predecessors =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 <div class="figure" style="text-align: center">
@@ -1866,10 +1868,10 @@ Fig. 2. Graph for the cpmexample2 dataset
 </p>
 </div>
 <p>Dummy activities are marked with a dashed line. The examples above
-assumed a deterministic duration of the activity, but for duration as a
-random variable, the graph structure should also be given in one of the
+assumed a deterministic durations of activities, but for durations as a
+random variables, the graph structure should also be given in one of the
 ways listed.</p>
-<p>The list of activities immediately preceding must be transformed into
+<p>The list of immediately preceding activities must be transformed into
 a set of pairs of start and end nodes. This is the only way to create a
 graph in the <em>DiagrammeR</em> package. We used an algorithm by Cohen
 and Sadeh. This algorithm not only creates a from-to list for
@@ -1878,15 +1880,15 @@ However, it has a disadvantage. After adding dummies, it is very likely
 that for some activities the start node number will be higher than the
 end node number. This can lead the <em>critpath</em> package to
 incorrect results, e.g. incorrect project completion date. Therefore, a
-function has been added that renumbers the nodes of the Cohen and Sadeh
-algorithm so that the starting node has a lower number than the end
-one.</p>
+function has been added that renumbers the nodes so that the starting
+node has a lower number than the end one.</p>
 <p>Graphs are drawn by the <em>render_graph()</em> function from the
 <em>DiagrammeR</em> package using the Fruchterman-Reingold algorithm. It
 is to guarantee, among others not intersecting the edges, but this is
 not always possible. Besides, subsequent runs of this function for the
 same problem can produce (and often do) a graph that is placed on the
-plane in a slightly different way each time.</p>
+plane in a slightly different way each time. However, this can be
+controlled using the <em>seed</em> parameter.</p>
 </div>
 
 

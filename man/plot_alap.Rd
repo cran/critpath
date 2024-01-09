@@ -15,7 +15,7 @@ plot_alap(yourlist, show_dummy = FALSE, bar_size = 10)
 }
 \value{
 Draws an ALAP (activities start and finish As Late As Possible) chart broken down into critical ("CR") and non-critical ("NC") activities.
-  Marks the slack of time.
+  Marks total float.
 }
 \description{
 An ALAP chart

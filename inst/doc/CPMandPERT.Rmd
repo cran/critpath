@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 
 ## Example of CPM analysis in the *critpath* package
 
-The table below provides information on the structure of the graph and the duration of activities in some example project. The same dataset is available in the *critpath* package as  *cpmexample1*. This example assumes that the duration is deterministic. Starting and ending node numbers are provided for each activity. It is also possible to pass the structure of the graph through a list of immediate predecessors. See the *Introduction* vignette.
+The table below provides information on the structure of the graph and the duration of activities in some example project. The same dataset is available in the *critpath* package as  *cpmexample1*. This example assumes that the durations are deterministic. Starting and ending node numbers are provided for each activity. It is also possible to pass the structure of the graph through a list of immediate predecessors. See the *Introduction* vignette.
 
 ```{r, echo = FALSE}
 from <- c(1, 1, 1, 2, 3, 4)
@@ -75,7 +75,7 @@ Operator "[" returns objects of the list type. In turn, the operator "[[" allows
 ```{r}
 # Schedule
 x[2]
-# Directive term
+# Directive deadline
 x[3]
 # Critical activities
 x[4]
@@ -97,7 +97,7 @@ The next element of the CPM analysis will be the Gantt chart. The *plot_gantt()*
 plot_gantt(x)
 ```
 
-The activities are displayed in the order they were entered. The critical ones are marked with *CR* and the non-critical ones with *NC*. Additionally, slacks greater than zero have been added for non-critical activities.
+The activities are displayed in the order they were entered. The critical ones are marked with *CR* and the non-critical ones with *NC*. Additionally, total floats greater than zero have been added for non-critical activities.
 
 Based on the Gantt chart we can plot two more charts. The first one is the ASAP chart which shows effetcs of starting activity as early as possible and end it as early as possible. It can be achieved withe the *plot_asap()* function.
 
@@ -115,7 +115,7 @@ The plot_gantt(), plot_asap(), plot_alap() functions have an optional show_dummy
 
 ## Example of PERT analysis in the *critpath* package
 
-We will use a different data than in CPM. This data is available in a set named *pertexample1*. Let us assume that the duration of activities are random and described with three numerical values as in Table 2. The package allows you to calculate the expected value and variance according to several different formulas (check the solve_pathAOA() function help). In this example, we will use classic formulas.
+We will use a different data than in CPM. This data is available in a set named *pertexample1*. Let us assume that the durations are described with three numerical values as in Table 2. The package allows you to calculate the expected value and variance according to several different formulas (check the solve_pathAOA() function help). In this example, we will use classic formulas.
 
 ```{r, echo = FALSE}
 from <- c(1, 2, 3, 3, 3, 4, 5, 6, 7)
@@ -125,8 +125,8 @@ opt_time <- c(3, 5, 5, 1, 6, 2, 5, 3, 4)
 likely_time <- c(5, 7, 5, 6, 8, 6, 6, 5, 6)
 pes_time <- c(7, 9, 8, 8, 10, 7, 7, 7, 8)
 knitr::kable(cbind(as.numeric(from), to, label, opt_time, likely_time, pes_time), 
-             col.names = c("Start. node", "End. node", "Name", "Opt. time", 
-                           "Most like. time", "Pess. time"),
+             col.names = c("Start. node", "End. node", "Name", "Optimistic dur.", 
+                           "Most likely dur.", "Pessimistic dur."),
              align = "cccccc", caption = "Tab. 2. Data for the PERT model")
 ```
 
@@ -139,13 +139,13 @@ We are interested in the following types of analyzes:
 - making ASAP and ALAP charts,
 - indication of directive terms for the risk-taker and the belayer schedules.
 
-Duration is a random variable, so we will change the *deterministic* argument to *FALSE*.
+Duration in PERT is a random variable, so we will change the *deterministic* argument to *FALSE*.
 
 ```{r}
 y <- solve_pathAOA(pertexample1, deterministic = FALSE)
 ```
 
-After solving the problem, a message appears giving the parameters of the normal distribution of a random variable describing the duration of the project.
+After solving the problem, a message appears giving the parameters of the normal distribution of a random variable describing the project completion time.
 
 Below we display the elements of the list storing the solution. It contains one more element than the list created for the CPM method. 
 The *Time* column contains the expected duration of the activity.
@@ -153,9 +153,9 @@ The *Time* column contains the expected duration of the activity.
 ```{r}
 # Schedule
 y[2]
-# Expected directive term
+# Expected completion time
 y[3]
-# Standard deviation of the directive term
+# Standard deviation of the completion time
 y[4]
 # Critical activities
 y[5]
@@ -191,14 +191,13 @@ PERT_newtime(new_prob = 0.3, y)
 PERT_newtime(new_prob = 0.6, y)
 ```
 
-The *PERT_newprob()* function answers to the question about the probability of completing the project for a given directive term. For example the probability that the project will end after 30 days
+The *PERT_newprob()* function answers to the question about the probability of completing the project for a given directive deadline. For example the probability that the project will end after 30 days
 
 ```{r}
-# 
 PERT_newprob(new_DT = 30, y)
 ```
 
-Besides, the *plot_norm()* function draws a plot of the normal distribution of a random variable describing the expected directive term.
+Besides, the *plot_norm()* function draws a plot of the normal distribution of a random variable describing the expected directive deadline.
 
 ```{r, fig.align = 'center', fig.width = 6, fig.cap = "Fig. 10. Normal distribution for the pertexample1 dataset"}
 plot_norm(y)

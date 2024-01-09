@@ -12,7 +12,7 @@
 
 <meta name="author" content="Adam Kucharski" />
 
-<meta name="date" content="2023-06-06" />
+<meta name="date" content="2024-01-06" />
 
 <title>The LESS method</title>
 
@@ -1554,7 +1554,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">The LESS method</h1>
 <h4 class="author">Adam Kucharski</h4>
-<h4 class="date">2023-06-06</h4>
+<h4 class="date">2024-01-06</h4>
 
 
 
@@ -1568,7 +1568,7 @@ Let’s make the following assumptions:</p>
 <ul>
 <li>The cost of activity acceleration is a linear function.</li>
 <li>The initial duration of an activity is called normal time and the
-shortest possible duration is called the boundary time.</li>
+shortest possible duration is called the crash time.</li>
 </ul>
 <p>The decision problem we deal with concerns the minimization of the
 total cost of the project (<em>TC</em>) and we will use the
@@ -1587,17 +1587,17 @@ the project at which the expression <span class="math inline">\(TC = DC
 <ul>
 <li><span class="math inline">\(t_{ij}^{n}\)</span> - normal duration of
 the activity (<em>i,j</em>);</li>
-<li><span class="math inline">\(t_{ij}^{b}\)</span> - boundary (the
+<li><span class="math inline">\(t_{ij}^{c}\)</span> - crash (the
 shortest possible) duration of the activity (<em>i,j</em>);</li>
 <li><span class="math inline">\(C_{ij}^{n}\)</span> - normal cost of
 performing the activity (<em>i,j</em>) (cost of performing the activity
 in time <span class="math inline">\(t_{ij}^{n}\)</span>);</li>
-<li><span class="math inline">\(C_{ij}^{b}\)</span> - boundary cost of
+<li><span class="math inline">\(C_{ij}^{c}\)</span> - crash cost of
 performing the activity (<em>i,j</em>) (cost of performing the activity
-in time <span class="math inline">\(t_{ij}^{g}\)</span>).</li>
+in time <span class="math inline">\(t_{ij}^{c}\)</span>).</li>
 </ul>
 <p>The duration of the activity (<em>i,j</em>) meets the condition:
-<span class="math inline">\(t_{ij}^{g}\leqslant t_{ij}\leqslant
+<span class="math inline">\(t_{ij}^{c}\leqslant t_{ij}\leqslant
 t_{ij}^{n}\)</span>. For each activity, we calculate the unit cost of
 acceleration <span class="math inline">\(s_{ij}\)</span> according to
 the formula:</p>
@@ -1640,16 +1640,16 @@ Fig. 1. Graph for the lessexample1 dataset
 the table below. This is a variant in which a start and end node are
 given for each activity. It is also possible to provide a list of
 predecessors. See the Introduction vignette for more information.</p>
-<table>
+<table style="width:100%;">
 <caption>Tab. 1. Data for the LESS model</caption>
 <colgroup>
-<col width="13%" />
-<col width="11%" />
+<col width="14%" />
+<col width="12%" />
 <col width="6%" />
+<col width="19%" />
 <col width="18%" />
-<col width="20%" />
+<col width="14%" />
 <col width="13%" />
-<col width="15%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -1657,9 +1657,9 @@ predecessors. See the Introduction vignette for more information.</p>
 <th align="center">End. node</th>
 <th align="center">Name</th>
 <th align="center">Normal duration</th>
-<th align="center">Boundary duration</th>
+<th align="center">Crash duration</th>
 <th align="center">Normal cost</th>
-<th align="center">Boundary cost</th>
+<th align="center">Crash cost</th>
 </tr>
 </thead>
 <tbody>
@@ -1730,9 +1730,9 @@ predecessors. See the Introduction vignette for more information.</p>
 </table>
 <p>As with other <em>critpath</em> functions, the column names can be
 anything, but the order they are in is significant. The first two
-columns describe the structure of the graph (as the AoA), the third
-contains activities labels, the others contain data on the project. The
-number of rows corresponds to the number of activities that make up the
+columns describe the structure of the graph, the third contains
+activities labels, the others contain data on the project. The number of
+rows corresponds to the number of activities that make up the
 project.</p>
 <p>First, we present the function <em>solve_lessAOA(data, ICconst,
 ICslope)</em>, which is the most important function for the LESS method.
@@ -1742,14 +1742,14 @@ about the solution.</p>
 of the linear indirect cost function. The indirect cost function in our
 example takes the form: <span class="math inline">\(IC = 50 +
 15t_{5}\)</span>, where <span class="math inline">\(t_{5}\)</span>
-denotes the directive term in the last, fifth node of the graph.</p>
+denotes the completion time in the last, fifth node of the graph.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">solve_lessAOA</span>(lessexample1, <span class="dv">50</span>, <span class="dv">15</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="co">#&gt; Reduced completion time:  11</span></span></code></pre></div>
 <p>The results are as follows:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Data frame with some data and partial results</span></span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>z[<span class="dv">2</span>]</span>
 <span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; $summary_less</span></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt;      id from to name time bound.time TS accel.cost</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt;      id from to name time crash.time TF accel.cost</span></span>
 <span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt; 1-&gt;2  1    1  2    A    2          2  0       10.0</span></span>
 <span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; 1-&gt;3  2    1  3    B    5          3  0        5.0</span></span>
 <span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; 2-&gt;3  3    2  3    C    2          1  1        4.0</span></span>
@@ -1769,11 +1769,11 @@ denotes the directive term in the last, fifth node of the graph.</p>
 <span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a>z[<span class="dv">5</span>]</span>
 <span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co">#&gt; $min_cost</span></span>
 <span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt; [1] 600</span></span>
-<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co"># Directive term for normal time</span></span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co"># Completion time for normal time</span></span>
 <span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a>z[<span class="dv">6</span>]</span>
-<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="co">#&gt; $normal_DT</span></span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="co">#&gt; $normal_DD</span></span>
 <span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="co">#&gt; [1] 15</span></span>
-<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a><span class="co"># The shortest directive term</span></span>
+<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a><span class="co"># The shortest completion time</span></span>
 <span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a>z[<span class="dv">7</span>]</span>
 <span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a><span class="co">#&gt; $min_time</span></span>
 <span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a><span class="co">#&gt; [1] 11</span></span></code></pre></div>
